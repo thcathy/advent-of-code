@@ -31,7 +31,7 @@ public class Day14 {
 		List<String> inputs = Resources.readLines(Resources.getResource("day14_1.txt"), Charsets.UTF_8);
 		List<Deer> deers = parseDeer(inputs);
 		
-		IntStream.rangeClosed(1, sec)
+		int maxPoint = IntStream.rangeClosed(1, sec)
 			.mapToObj(i -> {
 				return deers.stream()
 					.map(d -> new Pair<Integer, Deer>(distanceAtSec(d, i), d))
@@ -41,7 +41,13 @@ public class Day14 {
 				Integer max = m.keySet().stream().mapToInt(k -> k).max().getAsInt();
 				return m.get(max).stream();
 			})
-			.map(p -> p.getValue().name);
+			.map(p -> p.getValue().name)
+			.collect(Collectors.groupingBy(s -> s))
+			.values().stream()
+			.mapToInt(l -> l.size())
+			.max().getAsInt();
+		
+		log.info("Max point in Second Star: {}", maxPoint);
 	}
 
 	void firstStar() throws Exception {
