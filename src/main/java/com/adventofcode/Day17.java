@@ -23,9 +23,9 @@ public class Day17 {
 	static final int FIXED_CALORIES = 500;
 
 	public static void main(String... args) throws Exception {
-		Day17 day16 = new Day17();
-		day16.firstStar();
-		day16.secondStar();
+		Day17 day17 = new Day17();
+		day17.firstStar();
+		day17.secondStar();
 	}
 
 	void secondStar() throws Exception {
