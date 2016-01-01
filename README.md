@@ -12,3 +12,8 @@ Running the java class as Java Application. The result will be printed to the co
 ## Author
 
 Timmy Wong (thcathy@gmail.com)
+
+###### Remark for Day 19 second part
+
+The solution of this part is tricky. It is only applicable based on specific input analysis. i.e. This may not correct if the input pattern changed.
+For more information, you can read the discussion from [reddit](https://www.reddit.com/r/adventofcode/comments/3xflz8/day_19_solutions/)
