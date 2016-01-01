@@ -21,8 +21,6 @@ import com.google.common.io.Resources;
 
 public class Day19 {
 	static Logger log = LoggerFactory.getLogger(Day19.class);
-	static final int MAX_TEASPOON = 100;
-	static final int FIXED_CALORIES = 500;
 	
 	public static void main(String... args) throws Exception {
 		Day19 day19 = new Day19();
