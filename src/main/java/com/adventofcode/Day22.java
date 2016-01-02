@@ -30,7 +30,6 @@ public class Day22 {
 		int cost = nextRound(game).filter(Game::isWin).mapToInt(g -> g.totalManaCost).min().getAsInt();
 
 		log.debug("Min cost to default boss in second star: {}", cost);
-		//assert(cost == 1269);
 	}
 
 	
@@ -44,7 +43,6 @@ public class Day22 {
 		int cost = nextRound(game).filter(Game::isWin).mapToInt(g -> g.totalManaCost).min().getAsInt();
 
 		log.debug("Min cost to default boss in first star: {}", cost);
-		assert(cost == 1269);
 	}
 	
 	Stream<Game> nextRound(Game turn) {
