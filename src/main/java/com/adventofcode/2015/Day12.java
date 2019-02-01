@@ -24,13 +24,13 @@ public class Day12 {
 
 	private static void secondStar() throws Exception {
 		ObjectMapper mapper = new ObjectMapper();
-		Object document = mapper.readValue(Resources.getResource("day12_1.txt"), Object.class);
+		Object document = mapper.readValue(Resources.getResource("2015/day12_1.txt"), Object.class);
 
 		log.info("sum of document ignored 'red' is {}", sumIgnoreRed(document).sum());
 	}
 
 	private static void firstStar() throws Exception {
-		List<String> input = Resources.readLines(Resources.getResource("day12_1.txt"), Charsets.UTF_8);
+		List<String> input = Resources.readLines(Resources.getResource("2015/day12_1.txt"), Charsets.UTF_8);
 		log.info("sum of first document is {}", sum(input.get(0)));
 	}
 

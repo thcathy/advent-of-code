@@ -28,7 +28,7 @@ public class Day24 {
 
 	void secondStar() throws Exception {
 		final int numberOfPackages = 4;
-		List<Integer> weights = Resources.readLines(Resources.getResource("day24_1.txt"), Charsets.UTF_8).stream()
+		List<Integer> weights = Resources.readLines(Resources.getResource("2015/day24_1.txt"), Charsets.UTF_8).stream()
 				.map(Integer::valueOf)
 				.sorted((x, y) -> y-x)
 				.collect(Collectors.toList());
@@ -53,7 +53,7 @@ public class Day24 {
 	
 	void firstStar() throws Exception {
 		final int numberOfPackages = 3;
-		List<Integer> weights = Resources.readLines(Resources.getResource("day24_1.txt"), Charsets.UTF_8).stream()
+		List<Integer> weights = Resources.readLines(Resources.getResource("2015/day24_1.txt"), Charsets.UTF_8).stream()
 								.map(Integer::valueOf)
 								.sorted((x, y) -> y-x)
 								.collect(Collectors.toList());

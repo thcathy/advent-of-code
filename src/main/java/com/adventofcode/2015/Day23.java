@@ -24,7 +24,7 @@ public class Day23 {
 	}
 
 	void secondStar() throws Exception {
-		List<String> inputs = Resources.readLines(Resources.getResource("day23_1.txt"), Charsets.UTF_8);
+		List<String> inputs = Resources.readLines(Resources.getResource("2015/day23_1.txt"), Charsets.UTF_8);
 		Map<String, Long> registers = new HashMap<>();
 		registers.put("a", 1l);
 		registers.put("b", 0l);
@@ -35,7 +35,7 @@ public class Day23 {
 
 	
 	void firstStar() throws Exception {
-		List<String> inputs = Resources.readLines(Resources.getResource("day23_1.txt"), Charsets.UTF_8);
+		List<String> inputs = Resources.readLines(Resources.getResource("2015/day23_1.txt"), Charsets.UTF_8);
 		Map<String, Long> registers = new HashMap<>();
 		registers.put("a", 0l);
 		registers.put("b", 0l);
@@ -90,7 +90,7 @@ public class Day23 {
 		
 	@Test
 	public void registerShouldEqualToOne() throws Exception {
-		List<String> inputs = Resources.readLines(Resources.getResource("day23_test.txt"), Charsets.UTF_8);
+		List<String> inputs = Resources.readLines(Resources.getResource("2015/day23_test.txt"), Charsets.UTF_8);
 		Map<String, Long> registers = new HashMap<>();
 		registers.put("a", 0l);
 		registers.put("b", 0l);

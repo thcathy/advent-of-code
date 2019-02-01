@@ -27,7 +27,7 @@ public class Day16 {
 	}
 
 	void secondStar() throws Exception {
-		List<String> inputs = Resources.readLines(Resources.getResource("day16_1.txt"), Charsets.UTF_8);
+		List<String> inputs = Resources.readLines(Resources.getResource("2015/day16_1.txt"), Charsets.UTF_8);
 		List<AuntSue> aunts = parseAuntSue(inputs);
 		final Map<String, Integer> tickerTape = createTickerTape();
 		
@@ -52,7 +52,7 @@ public class Day16 {
 	}
 
 	void firstStar() throws Exception {
-		List<String> inputs = Resources.readLines(Resources.getResource("day16_1.txt"), Charsets.UTF_8);
+		List<String> inputs = Resources.readLines(Resources.getResource("2015/day16_1.txt"), Charsets.UTF_8);
 		List<AuntSue> aunts = parseAuntSue(inputs);
 		final Map<String, Integer> tickerTape = createTickerTape();
 		

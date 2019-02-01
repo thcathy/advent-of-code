@@ -12,7 +12,7 @@ import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
 
 public class Day5 {
-	final static String inputFile = "day5_1.txt";
+	final static String inputFile = "2015/day5_1.txt";
 	final static Logger log = LoggerFactory.getLogger(Day5.class);
 	final static List<String> invalidStrings = Arrays.asList("ab", "cd", "pq", "xy");
 	

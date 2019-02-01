@@ -30,7 +30,7 @@ public class Day13 {
 	}
 
 	void secondStar() throws Exception {
-		List<String> input = Resources.readLines(Resources.getResource("day13_1.txt"), Charsets.UTF_8);
+		List<String> input = Resources.readLines(Resources.getResource("2015/day13_1.txt"), Charsets.UTF_8);
 		List<String> peopleIncludeMe = addMyself(getPeople(input));
 		Map happinessMapIncludeMe = addMyself(peopleIncludeMe, constructHappinessMap(input));
 

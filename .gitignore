@@ -38,3 +38,7 @@ local.properties
 ### Gradle ###
 .gradle
 build/
+
+# InteliJ
+*.iml
+.idea

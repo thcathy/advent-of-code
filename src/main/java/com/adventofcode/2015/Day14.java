@@ -28,7 +28,7 @@ public class Day14 {
 
 	void secondStar() throws Exception {
 		final int sec = 2503;
-		List<String> inputs = Resources.readLines(Resources.getResource("day14_1.txt"), Charsets.UTF_8);
+		List<String> inputs = Resources.readLines(Resources.getResource("2015/day14_1.txt"), Charsets.UTF_8);
 		List<Deer> deers = parseDeer(inputs);
 		
 		int maxPoint = IntStream.rangeClosed(1, sec)

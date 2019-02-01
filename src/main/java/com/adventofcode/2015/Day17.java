@@ -29,7 +29,7 @@ public class Day17 {
 	}
 
 	void secondStar() throws Exception {
-		List<String> inputs = Resources.readLines(Resources.getResource("day17_1.txt"), Charsets.UTF_8);
+		List<String> inputs = Resources.readLines(Resources.getResource("2015/day17_1.txt"), Charsets.UTF_8);
 		List<Container> containers = parseContainer(inputs);
 		final int liters = 150;
 		

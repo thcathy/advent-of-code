@@ -10,7 +10,7 @@ import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
 
 public class Day2 {
-	final static String inputFile = "day2_1.txt";
+	final static String inputFile = "2015/day2_1.txt";
 	final static Logger log = LoggerFactory.getLogger(Day2.class);
 	
 	public static void main(String... args) throws Exception {

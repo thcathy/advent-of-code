@@ -29,7 +29,7 @@ public class Day19 {
 	}
 
 	void secondStar() throws Exception {
-		List<String> inputs = Resources.readLines(Resources.getResource("day19_1.txt"), Charsets.UTF_8);
+		List<String> inputs = Resources.readLines(Resources.getResource("2015/day19_1.txt"), Charsets.UTF_8);
 		String finalMolecule = inputs.get(inputs.size()-1);
 		
 		List<String> elements = parseElements(inputs.subList(0, inputs.size()-2));

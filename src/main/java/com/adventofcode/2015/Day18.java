@@ -23,7 +23,7 @@ public class Day18 {
 	}
 
 	void secondStar() throws Exception {
-		List<String> inputs = Resources.readLines(Resources.getResource("day18_1.txt"), Charsets.UTF_8);
+		List<String> inputs = Resources.readLines(Resources.getResource("2015/day18_1.txt"), Charsets.UTF_8);
 		boolean[][] panel = parseInput(inputs);
 		turnOnCorner(panel);
 	

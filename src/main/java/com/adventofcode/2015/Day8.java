@@ -11,8 +11,8 @@ import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
 
 public class Day8 {
-	final static String inputFile = "day8_1.txt";
-	final static String testFile = "day8_test.txt";
+	final static String inputFile = "2015/day8_1.txt";
+	final static String testFile = "2015/day8_test.txt";
 	final static Logger log = LoggerFactory.getLogger(Day8.class);
 	
 	public static void main(String... args) throws Exception {

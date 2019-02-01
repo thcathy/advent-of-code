@@ -27,7 +27,7 @@ public class Day15 {
 	}
 
 	void secondStar() throws Exception {
-		List<String> inputs = Resources.readLines(Resources.getResource("day15_1.txt"), Charsets.UTF_8);
+		List<String> inputs = Resources.readLines(Resources.getResource("2015/day15_1.txt"), Charsets.UTF_8);
 		List<Ingredient> ingredients = parseIngredient(inputs);
 
 		int max = addIngredient(new int[ingredients.size()], 0, ingredients)
@@ -38,7 +38,7 @@ public class Day15 {
 	}
 
 	void firstStar() throws Exception {
-		List<String> inputs = Resources.readLines(Resources.getResource("day15_1.txt"), Charsets.UTF_8);
+		List<String> inputs = Resources.readLines(Resources.getResource("2015/day15_1.txt"), Charsets.UTF_8);
 		List<Ingredient> ingredients = parseIngredient(inputs);
 
 		int max = addIngredient(new int[ingredients.size()], 0, ingredients)
