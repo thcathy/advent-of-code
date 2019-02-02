@@ -1,20 +1,18 @@
 package com.adventofcode;
 
-import static org.junit.Assert.assertEquals;
+import com.google.common.base.Charsets;
+import com.google.common.io.Resources;
+import org.apache.commons.lang3.tuple.Pair;
+import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.common.base.Charsets;
-import com.google.common.io.Resources;
-
-import javafx.util.Pair;
+import static org.junit.Assert.assertEquals;
 
 public class Day14 {
 	static Logger log = LoggerFactory.getLogger(Day14.class);
@@ -34,7 +32,7 @@ public class Day14 {
 		int maxPoint = IntStream.rangeClosed(1, sec)
 			.mapToObj(i -> {
 				return deers.stream()
-					.map(d -> new Pair<Integer, Deer>(distanceAtSec(d, i), d))
+					.map(d -> Pair.of(distanceAtSec(d, i), d))
 					.collect(Collectors.groupingBy(Pair::getKey));
 			})
 			.flatMap(m -> {
