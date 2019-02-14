@@ -44,7 +44,7 @@ public class Day11 {
             var completed = facilities.stream().filter(Facility::isCompleted).findFirst();
             if (completed.isPresent())
                 return completed.get().step;
-            facilities = facilities.parallelStream()
+            facilities = facilities.stream()
                     .flatMap(f ->generateNextSteps(f))
                     .filter(f -> f.isSafe())
                     .filter(f -> !allStates.contains(f.hash()))
