@@ -5,12 +5,16 @@ import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.common.base.Charsets;
+import com.google.common.io.Resources;
 
 import static org.junit.Assert.assertEquals;
 
@@ -24,9 +28,10 @@ public class Day10Part2 {
     }
 
     void run() throws IOException {
-        //var lines = Resources.readLines(ClassLoader.getSystemResource(inputFile), Charsets.UTF_8);
-        //var result = maxAsteroidSeenFromBestLocation(getAsteroids(lines));
-        //log.warn("How many other asteroids can be detected from that location? {}", result);
+        var lines = Resources.readLines(ClassLoader.getSystemResource(inputFile), Charsets.UTF_8);
+        var asteroids = getAsteroids(lines);
+        var target200th = sortedTarget(bestMonitoringLocation(asteroids).position, asteroids).get(199);
+        log.warn("what do you get if you multiply its X coordinate by 100 and then add its Y coordinate? {}", target200th.position.x * 100 + target200th.position.y);
     }
 
     List<Position> getAsteroids(List<String> inputs) {
@@ -53,6 +58,44 @@ public class Day10Part2 {
                 .max((a1, a2) -> (int) (a1.seenAsteroid - a2.seenAsteroid)).get();
     }
 
+    Target buildTarget(Position from, Position target) {
+        return new Target(target, from.angleTo(target), distanceOf(from, target));
+    }
+
+    int distanceOf(Position a, Position b) { return Math.abs(a.x - b.x) + Math.abs(a.y - b.y); }
+
+    List<Target> sortedTarget(Position from, List<Position> allTargets) {
+        var sortByDegreeDistance = sortTargetByDegreeDistance(from, allTargets);
+
+        int pointer = 0;
+        String laserDegree = "";
+        var finalSortedTarget = new LinkedList<Target>();
+        while (sortByDegreeDistance.size() > 0) {
+            if (!laserDegree.equals(sortByDegreeDistance.get(pointer).degree)) {
+                var target = sortByDegreeDistance.remove(pointer);
+                laserDegree = target.degree;
+                finalSortedTarget.add(target);
+            } else {
+                pointer++;
+            }
+            if (pointer >= sortByDegreeDistance.size()) {
+                pointer = 0;
+                laserDegree = "";
+            }
+        }
+        return finalSortedTarget;
+    }
+
+    List<Target> sortTargetByDegreeDistance(Position from, List<Position> allTargets) {
+        return allTargets.stream()
+                .filter(t -> !t.equals(from))
+                .map(t -> buildTarget(from, t))
+                .sorted((a, b) -> {
+                    if (a.degree.equals(b.degree)) return a.distance - b.distance;
+                    else return Double.compare(Double.valueOf(a.degree), Double.valueOf(b.degree));
+                }).collect(Collectors.toList());
+    }
+
     @Test
     public void angleTo_testcases() {
         var point = new Position(3, 4);
@@ -65,7 +108,26 @@ public class Day10Part2 {
 
     @Test
     public void bestMonitoringLocation_testcases() {
-        var input3 = List.of(
+        var input = testInput();
+        assertEquals(new Position(11, 13), bestMonitoringLocation(getAsteroids(input)).position);
+    }
+
+    @Test
+    public void sortedTarget_testcases() {
+        var input = testInput();
+        var sortedTargets = sortedTarget(new Position(11, 13), getAsteroids(input));
+        assertEquals(new Position(11, 12), sortedTargets.get(0).position);
+        assertEquals(new Position(12, 1), sortedTargets.get(1).position);
+        assertEquals(new Position(12, 2), sortedTargets.get(2).position);
+        assertEquals(new Position(12, 8), sortedTargets.get(9).position);
+        assertEquals(new Position(16, 0), sortedTargets.get(19).position);
+        assertEquals(new Position(16, 9), sortedTargets.get(49).position);
+        assertEquals(new Position(10, 16), sortedTargets.get(99).position);
+        assertEquals(new Position(8, 2), sortedTargets.get(199).position);
+    }
+
+    List<String> testInput() {
+        return List.of(
                 ".#..##.###...#######",
                 "##.############..##.",
                 ".#.######.########.#",
@@ -87,13 +149,18 @@ public class Day10Part2 {
                 "#.#.#.#####.####.###",
                 "###.##.####.##.#..##"
         );
-        assertEquals(new Position(11, 13), bestMonitoringLocation(getAsteroids(input3)).position);
     }
 
     class Target {
         Position position;
         String degree;
         int distance;
+
+        public Target(Position position, String degree, int distance) {
+            this.position = position;
+            this.degree = degree;
+            this.distance = distance;
+        }
     }
 
     class Asteroid {
