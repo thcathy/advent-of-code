@@ -1,15 +1,18 @@
 package com.adventofcode.year2019;
 
 
-import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.List;
+import java.util.Objects;
 import java.util.StringJoiner;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+
+import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static org.junit.Assert.assertEquals;
 
@@ -29,27 +32,49 @@ public class Day12Part2 {
                 new Moon(new Dimensions(-15, 10, -11)),
                 new Moon(new Dimensions(-3, -8, 3))
         );
-        var result = totalEnergyAfterStep(moons, 1000);
+        var result = stepTillAllDimensionsEqualsToBeginning(moons);
         log.warn("What is the total energy in the system = {}", result);
     }
 
-    int totalEnergyAfterStep(List<Moon> moons, int step) {
-        IntStream.range(0, step).forEach(i -> moveMoons(moons));
-        return moons.stream().mapToInt(Moon::totalEnergy).sum();
+    long stepTillAllDimensionsEqualsToBeginning(List<Moon> moons) {
+        long stepOnX = stepTillSingleDimensionEqualsToBeginning(moons, (moon) -> new Moon(new Dimensions(moon.position.x, 0, 0)), (d) -> d.x);
+        long stepOnY = stepTillSingleDimensionEqualsToBeginning(moons, (moon) -> new Moon(new Dimensions(0, moon.position.y, 0)), (d) -> d.y);
+        long stepOnZ = stepTillSingleDimensionEqualsToBeginning(moons, (moon) -> new Moon(new Dimensions(0, 0, moon.position.z)), (d) -> d.z);
+
+        return lcm(lcm(stepOnX, stepOnY), stepOnZ);
     }
 
-    long stepTillMoonsStopMoving(List<Moon> moons) {
+    long lcm(long number1, long number2) {
+        if (number1 == 0 || number2 == 0) {
+            return 0;
+        }
+        long absNumber1 = Math.abs(number1);
+        long absNumber2 = Math.abs(number2);
+        long absHigherNumber = Math.max(absNumber1, absNumber2);
+        long absLowerNumber = Math.min(absNumber1, absNumber2);
+        long lcm = absHigherNumber;
+        while (lcm % absLowerNumber != 0) {
+            lcm += absHigherNumber;
+        }
+        return lcm;
+    }
+
+    long stepTillSingleDimensionEqualsToBeginning(List<Moon> originMoons, Function<Moon, Moon> moonWithSingleDimension, Function<Dimensions, Integer> extractDimension) {
+        var moons = originMoons.stream().map(m -> moonWithSingleDimension.apply(m)).collect(Collectors.toList());
         long step = 0;
         do {
             step++;
             moveMoons(moons);
         }
-        while (!isAllStopped(moons));
-        return step;
+        while (!isSamePosition(originMoons, moons, extractDimension));
+        return step + 1;
     }
 
-    boolean isAllStopped(List<Moon> moons) {
-        return moons.stream().allMatch(m -> m.kineticEnergy() == 0);
+    private boolean isSamePosition(List<Moon> originMoons, List<Moon> moons, Function<Dimensions, Integer> extractDimension) {
+        return IntStream.range(0, originMoons.size()).boxed()
+                .allMatch(i ->
+                        extractDimension.apply(originMoons.get(i).position) == extractDimension.apply(moons.get(i).position)
+                );
     }
 
     void moveMoons(List<Moon> moons) {
@@ -69,19 +94,8 @@ public class Day12Part2 {
                 new Moon(new Dimensions(4, -8, 8)),
                 new Moon(new Dimensions(3, 5, -1))
         );
-        moveMoons(moons);
+        IntStream.rangeClosed(1, 13).forEach(i -> moveMoons(moons));
         assertEquals(2, moons.get(0).position.x);
-        assertEquals(-1, moons.get(0).position.y);
-        assertEquals(1, moons.get(0).position.z);
-        assertEquals(3, moons.get(0).velocity.x);
-        assertEquals(-1, moons.get(0).velocity.y);
-        assertEquals(-1, moons.get(0).velocity.z);
-
-        for (int i = 2; i <= 10; i++)
-            moveMoons(moons);
-
-        var totalEnergy = moons.stream().mapToInt(Moon::totalEnergy).sum();
-        assertEquals(179, totalEnergy);
     }
 
     @Test
@@ -92,7 +106,7 @@ public class Day12Part2 {
                 new Moon(new Dimensions(4, -8, 8)),
                 new Moon(new Dimensions(3, 5, -1))
         );
-        assertEquals(2772, stepTillMoonsStopMoving(moons1));
+        assertEquals(2772, stepTillAllDimensionsEqualsToBeginning(moons1));
 
 
         var moons2 = List.of(
@@ -101,7 +115,7 @@ public class Day12Part2 {
                 new Moon(new Dimensions(2, -7, 3)),
                 new Moon(new Dimensions(9, -8, -3))
         );
-        assertEquals(4686774924l, stepTillMoonsStopMoving(moons2));
+        assertEquals(4686774924l, stepTillAllDimensionsEqualsToBeginning(moons2));
     }
 
     void applyGravity(Moon moon1, Moon moon2) {
@@ -144,6 +158,21 @@ public class Day12Part2 {
         public String toString() {
             return new StringJoiner(", ", "[", "]")
                     .add("x=" + x).add("y=" + y).add("z=" + z).toString();
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            Dimensions that = (Dimensions) o;
+            return x == that.x &&
+                    y == that.y &&
+                    z == that.z;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(x, y, z);
         }
     }
 
