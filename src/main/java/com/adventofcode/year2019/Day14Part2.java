@@ -1,6 +1,12 @@
 package com.adventofcode.year2019;
 
 
+import com.google.common.base.Charsets;
+import com.google.common.io.Resources;
+import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -8,13 +14,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-
-import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.common.base.Charsets;
-import com.google.common.io.Resources;
 
 import static org.junit.Assert.assertEquals;
 
@@ -29,25 +28,27 @@ public class Day14Part2 {
 
     void run() throws IOException {
         var lines = Resources.readLines(ClassLoader.getSystemResource(inputFile), Charsets.UTF_8);
-        var result = fuelFrom1TrillionOre(lines);
+        var result = fuelFromOres(lines, 1000000000000l);
         log.warn("what is the maximum amount of FUEL you can produce? {}", result);
     }
 
-    public long fuelFrom1TrillionOre(List<String> inputs) {
+    public long fuelFromOres(List<String> inputs, long ores) {
         var reactionMap = buildReactionMap(inputs);
-        var initMaterial = new HashMap<String, Long>();
-        initMaterial.put("ORE", 1000000000000l);
-        var oreToProduce1Fuel = oreToProduce("FUEL", 1, reactionMap, initMaterial);
-        long numberOfFuel = 1000000000000l / oreToProduce1Fuel;
-        try {
-            while (true) {
-                initMaterial = new HashMap<String, Long>();
-                initMaterial.put("ORE", 1000000000000l);
-                oreToProduce("FUEL", numberOfFuel, reactionMap, initMaterial);
-                numberOfFuel++;
+        long fuelCanProduce = 0, fuelCannotProduce = ores;
+
+        while (fuelCanProduce + 1 != fuelCannotProduce) {
+            var initMaterial = new HashMap<String, Long>();
+            initMaterial.put("ORE", ores);
+            long tryQuantity = fuelCanProduce + (fuelCannotProduce - fuelCanProduce) / 2;
+            try {
+                tryProduceMaterial("FUEL", tryQuantity, reactionMap, initMaterial);
+                fuelCanProduce = tryQuantity;
+            } catch (Exception e) {
+                fuelCannotProduce = tryQuantity;
             }
-        } catch (RuntimeException e) { numberOfFuel--; }
-        return numberOfFuel;
+
+        }
+        return fuelCanProduce;
     }
 
     public Map<String, Reaction> buildReactionMap(List<String> inputs) {
@@ -57,10 +58,10 @@ public class Day14Part2 {
     }
 
     public long oreToProduce1Fuel(Map<String, Reaction> outputProcedures) {
-        return oreToProduce("FUEL", 1, outputProcedures, new HashMap<>());
+        return tryProduceMaterial("FUEL", 1, outputProcedures, new HashMap<>());
     }
 
-    private long oreToProduce(String material, long quantity, Map<String, Reaction> outputProcedures, Map<String, Long> remainingMaterials) {
+    private long tryProduceMaterial(String material, long quantity, Map<String, Reaction> outputProcedures, Map<String, Long> remainingMaterials) {
         long remainingMaterial = remainingMaterials.getOrDefault(material,0l);
         if (remainingMaterial >= quantity) {
             remainingMaterials.put(material, remainingMaterial-quantity);
@@ -72,7 +73,7 @@ public class Day14Part2 {
         var procedure = outputProcedures.get(material);
         var numOfReaction = (long) Math.ceil(((double)quantity-remainingMaterial) / procedure.outputQuantity);
         var ores = IntStream.range(0, procedure.inputType.size()).boxed()
-                .mapToLong(i -> oreToProduce(procedure.inputType.get(i), procedure.inputQuantity.get(i) * numOfReaction, outputProcedures, remainingMaterials))
+                .mapToLong(i -> tryProduceMaterial(procedure.inputType.get(i), procedure.inputQuantity.get(i) * numOfReaction, outputProcedures, remainingMaterials))
                 .sum();
         remainingMaterials.put(material, remainingMaterial + (numOfReaction * procedure.outputQuantity) - quantity);
         return ores;
@@ -91,7 +92,7 @@ public class Day14Part2 {
                 "165 ORE => 2 GPVTF",
                 "3 DCFZ, 7 NZVS, 5 HKGWZ, 10 PSHF => 8 KHKGT"
         );
-        assertEquals(82892753, fuelFrom1TrillionOre(input2));
+        assertEquals(82892753, fuelFromOres(input2, 1000000000000l));
 
         var input3 = List.of(
                 "171 ORE => 8 CNZTR",
@@ -112,7 +113,7 @@ public class Day14Part2 {
                 "7 XCVML => 6 RJRHP",
                 "5 BHXH, 4 VRPVC => 5 LTCX"
         );
-        assertEquals(460664, fuelFrom1TrillionOre(input3));
+        assertEquals(460664, fuelFromOres(input3, 1000000000000l));
     }
 
     static class Reaction {
