@@ -36,14 +36,6 @@ public class Day17Part1 {
         log.warn("What is the sum of the alignment parameters? {}", result);
     }
 
-    int sumAlignmentParametersOfIntersections(List<Long> inputs) {
-        var scaffold = scaffoldPositions(inputs);
-        return scaffold.stream()
-                .filter(p -> isIntersection(p, scaffold))
-                .mapToInt(this::alignmentParameters)
-                .sum();
-    }
-
     int alignmentParameters(Position position) { return position.x * position.y; }
 
     boolean isIntersection(Position position, Set<Position> scaffold) {
