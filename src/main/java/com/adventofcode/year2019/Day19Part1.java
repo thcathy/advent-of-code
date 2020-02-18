@@ -36,15 +36,6 @@ public class Day19Part1 {
         log.warn("How many points are affected by the tractor beam in the 50x50 area closest to the emitter? {}", result);
     }
 
-    private void addInput(Software software) {
-        for (long x=0; x < 50; x++) {
-            for (long y=0; y < 50; y++) {
-                software.input.add(x);
-                software.input.add(y);
-            }
-        }
-    }
-
     long[] convertToLongArray(String input) {
         return Arrays.stream(input.split(","))
                 .mapToLong(Long::valueOf)
