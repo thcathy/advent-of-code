@@ -37,7 +37,6 @@ public class Day19Part2 {
         var lines = Resources.readLines(ClassLoader.getSystemResource(inputFile), Charsets.UTF_8);
         var program = convertToLongArray(lines.get(0));
         var beams = new HashSet<Position>();
-        var width = 1000;   // hard coded by printing the map
         var requiredSize = 100;
         var y = requiredSize;
         Optional<Position> result = Optional.empty();
