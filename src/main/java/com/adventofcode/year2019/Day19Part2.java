@@ -1,17 +1,26 @@
 package com.adventofcode.year2019;
 
 
-import com.google.common.base.Charsets;
-import com.google.common.io.Resources;
+import java.io.IOException;
+import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.function.Consumer;
+
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.text.MessageFormat;
-import java.util.*;
-import java.util.function.Consumer;
+import com.google.common.base.Charsets;
+import com.google.common.io.Resources;
 
 public class Day19Part2 {
     static Logger log = LoggerFactory.getLogger(Day19Part2.class);
@@ -26,23 +35,53 @@ public class Day19Part2 {
 
     void run() throws IOException {
         var lines = Resources.readLines(ClassLoader.getSystemResource(inputFile), Charsets.UTF_8);
-        var results = new ArrayList<Long>();
-        for (long x=0; x < 50; x++) {
-            for (long y=0; y < 50; y++) {
-                var software = new Software(convertToLongArray(lines.get(0)), List.of(x, y));
-                executeProgram(software);
-                results.add(software.output.get(0));
-            }
+        var program = convertToLongArray(lines.get(0));
+        var beams = new HashSet<Position>();
+        var requiredSize = 100;
+        var y = requiredSize;
+        Optional<Position> result = Optional.empty();
+        while (!result.isPresent()) {
+            queryBeamOnNextLine(program, beams, y);
+            result = canBeamFitPositionFound(beams, requiredSize, y);
+            y++;
         }
-
-        long result = results.stream().filter(v -> v == 1).count();
-        log.warn("How many points are affected by the tractor beam in the 50x50 area closest to the emitter? {}", result);
+        log.warn("What value do you get if you take that point's X coordinate, multiply it by 10000, then add the point's Y coordinate? {}", result.get().x * 10000 + result.get().y);
     }
 
-    long isBeamPosition(long x, long y, long[] program) {
+    private void queryBeamOnNextLine(long[] program, HashSet<Position> beams, int y) {
+        long x=0;
+        boolean hasFirstBeam = false, stopped = false;
+        while (!stopped) {
+            if (positionIsBeam(x, y, program)) {
+                beams.add(new Position(x, y));
+                hasFirstBeam = true;
+            } else {
+                if (hasFirstBeam) stopped = true;
+            }
+            x++;
+        }
+    }
+
+    Optional<Position> canBeamFitPositionFound(Set<Position> beams, int size, int bottomY) {
+        if (bottomY < size) return Optional.empty();
+
+        var leftX = 0;
+        while (!beams.contains(new Position(leftX, bottomY)))
+            leftX++;
+        var rightX = leftX + size - 1;
+        var topY = bottomY - size + 1;
+        var bottomRightPosition = new Position(rightX, bottomY);
+        var topRightPosition = new Position(rightX, topY);
+        if (beams.contains(bottomRightPosition) && beams.contains(topRightPosition))
+            return Optional.of(new Position(leftX, topY));
+        else
+            return Optional.empty();
+    }
+
+    boolean positionIsBeam(long x, long y, long[] program) {
         var software = new Software(program, List.of(x, y));
         executeProgram(software);
-        return software.output.get(0);
+        return software.output.get(0) == 1;
     }
 
     long[] convertToLongArray(String input) {
@@ -58,7 +97,6 @@ public class Day19Part2 {
     }
 
     OperationType getOperationType(String opCode) {
-        log.debug("get operation of {}", opCode);
         String code = opCode.length() == 1 ? opCode : opCode.substring(opCode.length() - 1);
         for (OperationType operation : OperationType.values()) {
             if (code.equals(operation.code)) return operation;
@@ -70,26 +108,22 @@ public class Day19Part2 {
         Addition("1", (software) -> {
             var value = getParamValue(software, 1) + getParamValue(software, 2);
             var outputPosition = getOutputPosition(software, 3);
-            log.debug("Addition: put {} to {}", value, outputPosition);
             software.program.put(outputPosition, value);
             software.increasePointer(4);
         }),
         Multiply("2", (software) -> {
             var value = getParamValue(software, 1) * getParamValue(software, 2);
             var outputPosition = getOutputPosition(software, 3);
-            log.debug("Multiply: put {} to {}", value, outputPosition);
             software.program.put(outputPosition, value);
             software.increasePointer(4);
         }),
         Input("3", (software) -> {
             var outputPosition = getOutputPosition(software, 1);
-            log.debug("Input: put input to {}", outputPosition);
             software.program.put(outputPosition, software.input.remove(0));
             software.increasePointer(2);
         }),
         Output("4", (software) -> {
             var value = getParamValue(software, 1);
-            log.debug("Output: put {} to output", value);
             software.output.add(value);
             software.increasePointer(2);
         }),
@@ -98,32 +132,27 @@ public class Day19Part2 {
                 software.pointer = getParamValue(software, 2);
             else
                 software.increasePointer(3);
-            log.debug("JumpIfTrue: pointer {}", software.pointer);
         }),
         JumpIfFalse("6", (software) -> {
             if (getParamValue(software, 1) == 0)
                 software.pointer = getParamValue(software, 2);
             else
                 software.increasePointer(3);
-            log.debug("JumpIfFalse: pointer {}", software.pointer);
         }),
         LessThan("7", (software) -> {
             var value = (getParamValue(software, 1) < getParamValue(software, 2)) ? 1l : 0l;
             var outputPosition = getOutputPosition(software, 3);
-            log.debug("LessThan: update {} to {}", value, outputPosition);
             software.program.put(outputPosition, value);
             software.increasePointer(4);
         }),
         Equals("8", (software) -> {
             var value = (getParamValue(software, 1) == getParamValue(software, 2)) ? 1l : 0l;
             var outputPosition = getOutputPosition(software, 3);
-            log.debug("Equals: update {} to {}", value, outputPosition);
             software.program.put(outputPosition, value);
             software.increasePointer(4);
         }),
         AdjustRelativeBase("9", (software) -> {
             software.relativeBase += getParamValue(software, 1);
-            log.debug("AdjustRelativeBase: to {}", software.relativeBase);
             software.increasePointer(2);
         });
 
@@ -197,9 +226,9 @@ public class Day19Part2 {
     }
 
     class Position {
-        int x = 0, y = 0;
+        long x = 0, y = 0;
 
-        public Position(int x, int y) {
+        public Position(long x, long y) {
             this.x = x;
             this.y = y;
         }
@@ -211,7 +240,7 @@ public class Day19Part2 {
         public boolean equals(Object o) {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
-            Day17Part1.Position position = (Day17Part1.Position) o;
+            Position position = (Position) o;
             return new EqualsBuilder()
                     .append(x, position.x)
                     .append(y, position.y)
@@ -226,4 +255,5 @@ public class Day19Part2 {
                     .toHashCode();
         }
     }
+
 }
