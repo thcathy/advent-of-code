@@ -1,9 +1,9 @@
-package com.adventofcode;
-
-import java.util.List;
+package com.adventofcode.year2015;
 
 import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
+
+import java.util.List;
 
 public class Day1 {
 	final static String inputFile = "2015/day1_1.txt";

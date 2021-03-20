@@ -1,10 +1,10 @@
-package com.adventofcode;
-
-import static org.junit.Assert.assertEquals;
+package com.adventofcode.year2015;
 
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static org.junit.Assert.assertEquals;
 
 public class Day25 {
 	static Logger log = LoggerFactory.getLogger(Day25.class);

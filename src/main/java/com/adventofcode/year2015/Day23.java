@@ -1,18 +1,17 @@
-package com.adventofcode;
+package com.adventofcode.year2015;
 
-import static org.junit.Assert.assertEquals;
+import com.google.common.base.Charsets;
+import com.google.common.io.Resources;
+import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
-import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.common.base.Charsets;
-import com.google.common.io.Resources;
+import static org.junit.Assert.assertEquals;
 
 public class Day23 {
 	static Logger log = LoggerFactory.getLogger(Day23.class);

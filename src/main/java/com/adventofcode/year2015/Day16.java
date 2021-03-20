@@ -1,4 +1,9 @@
-package com.adventofcode;
+package com.adventofcode.year2015;
+
+import com.google.common.base.Charsets;
+import com.google.common.io.Resources;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.AbstractMap.SimpleEntry;
 import java.util.Collections;
@@ -8,12 +13,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.common.base.Charsets;
-import com.google.common.io.Resources;
 
 public class Day16 {
 	static Logger log = LoggerFactory.getLogger(Day16.class);

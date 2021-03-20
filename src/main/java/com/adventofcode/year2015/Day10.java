@@ -1,4 +1,4 @@
-package com.adventofcode;
+package com.adventofcode.year2015;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

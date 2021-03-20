@@ -1,15 +1,14 @@
-package com.adventofcode;
+package com.adventofcode.year2015;
+
+import com.google.common.base.Charsets;
+import com.google.common.io.Resources;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.IntStream;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.common.base.Charsets;
-import com.google.common.io.Resources;
 
 public class Day5 {
 	final static String inputFile = "2015/day5_1.txt";

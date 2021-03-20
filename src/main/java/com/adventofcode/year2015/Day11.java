@@ -1,10 +1,10 @@
-package com.adventofcode;
-
-import java.util.Optional;
-import java.util.stream.IntStream;
+package com.adventofcode.year2015;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Optional;
+import java.util.stream.IntStream;
 
 public class Day11 {
 	static Logger log = LoggerFactory.getLogger(Day11.class);

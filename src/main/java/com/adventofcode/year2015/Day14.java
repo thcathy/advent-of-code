@@ -1,4 +1,4 @@
-package com.adventofcode;
+package com.adventofcode.year2015;
 
 import com.google.common.base.Charsets;
 import com.google.common.io.Resources;

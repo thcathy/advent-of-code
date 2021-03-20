@@ -1,13 +1,13 @@
-package com.adventofcode;
-
-import static org.junit.Assert.assertEquals;
-
-import java.io.IOException;
-import java.util.stream.IntStream;
+package com.adventofcode.year2015;
 
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.util.stream.IntStream;
+
+import static org.junit.Assert.assertEquals;
 
 public class Day20 {
 	static Logger log = LoggerFactory.getLogger(Day20.class);

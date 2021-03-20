@@ -1,6 +1,10 @@
-package com.adventofcode;
+package com.adventofcode.year2015;
 
-import static org.junit.Assert.assertEquals;
+import com.google.common.base.Charsets;
+import com.google.common.io.Resources;
+import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.List;
@@ -8,12 +12,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.common.base.Charsets;
-import com.google.common.io.Resources;
+import static org.junit.Assert.assertEquals;
 
 public class Day15 {
 	static Logger log = LoggerFactory.getLogger(Day15.class);
