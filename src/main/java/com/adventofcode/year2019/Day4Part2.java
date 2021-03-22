@@ -1,12 +1,12 @@
 package com.adventofcode.year2019;
 
 
-import java.io.IOException;
-import java.util.stream.IntStream;
-
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.util.stream.IntStream;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -20,7 +20,7 @@ public class Day4Part2 {
     }
 
     void run() throws IOException {
-        var result = totalPasswords(128392, 643281);
+        var result = totalPasswords(234208, 765869);
         log.warn("How many different passwords = {}", result);
     }
 

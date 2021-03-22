@@ -1,6 +1,10 @@
 package com.adventofcode.year2019;
 
 
+import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.List;
@@ -9,10 +13,6 @@ import java.util.StringJoiner;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-
-import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import static org.junit.Assert.assertEquals;
 
@@ -27,10 +27,10 @@ public class Day12Part2 {
 
     void run() throws IOException {
         var moons = List.of(
-                new Moon(new Dimensions(-6, -5, -8)),
-                new Moon(new Dimensions(0, -3, -13)),
-                new Moon(new Dimensions(-15, 10, -11)),
-                new Moon(new Dimensions(-3, -8, 3))
+                new Moon(new Dimensions(5, 4, 4)),
+                new Moon(new Dimensions(-11, -11, -3)),
+                new Moon(new Dimensions(0, 7, 0)),
+                new Moon(new Dimensions(-13, 2, 10))
         );
         var result = stepTillAllDimensionsEqualsToBeginning(moons);
         log.warn("What is the total energy in the system = {}", result);
