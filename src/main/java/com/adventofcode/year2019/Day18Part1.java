@@ -1,42 +1,38 @@
 package com.adventofcode.year2019;
 
 
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
+import java.io.IOException;
+import java.text.MessageFormat;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.PriorityQueue;
+import java.util.Set;
+
 import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.text.MessageFormat;
-import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
-
 public class Day18Part1 {
     Logger log = LoggerFactory.getLogger(Day18Part1.class);
-    final static String inputFile = "2019/day18_1.txt";
+    static final String inputFile = "2019/day18_1.txt";
+    static final char WALL = '#';
 
     public static void main(String... args) throws IOException {
         Day18Part1 solution = new Day18Part1();
     }
 
-    char[][] toMap(List<String> strings) {
+    char[][] parseMap(List<String> strings) {
         char[][] map = new char[strings.size()][strings.get(0).length()];
         for (int i = 0; i < map.length; i++) {
             map[i] = strings.get(i).toCharArray();
         }
         return map;
-    }
-
-    @Deprecated
-    void printMap(char[][] map) {
-        for (int i = 0; i < map.length; i++) {
-            for (int j = 0; j < map[i].length; j++) {
-                System.out.print(map[i][j]);
-            }
-            System.out.println();
-        }
     }
 
     Position find(char c, char[][] map) {
@@ -49,88 +45,136 @@ public class Day18Part1 {
         throw new RuntimeException("cannot find " + c);
     }
 
-    int totalKeys(char[][] map) {
-        int total = 0;
+    int minimumStepToCollectAllKeys(List<String> inputs) {
+        var map = parseMap(inputs);
+        var startPosition = find('@', map);
+        var keyLocations = getKeyLocations(map);
+
+        var allPaths = allPathsBetweenEveryKey(map, startPosition, keyLocations);
+        return minimumStepToCollectAllKeys(startPosition, new Route(startPosition, 0, Collections.emptySet()), keyLocations, allPaths, map);
+    }
+
+    int minimumStepToCollectAllKeys(Position start, Route route, Set<Position> keyLocations, Map<Path, Path> paths, char[][] map) {
+        if (route.keys.size() == keyLocations.size()) {
+            return route.steps;
+        }
+
+        return keyLocations.stream()
+                .filter(to -> canVisit(route, to, paths))
+                .map(to -> nextRoute(route, to, paths, map))
+                .mapToInt(nextPath -> minimumStepToCollectAllKeys(start, nextPath, keyLocations, paths, map))
+                .min().getAsInt();
+    }
+
+    boolean canVisit(Route route, Position next, Map<Path, Path> paths) {
+        var path = paths.get(new Path(route.position, next));
+        if (path == null) return false;
+
+        for (char door: path.doors) {
+            if (!route.keys.contains(Character.toLowerCase(door)))
+                return false;
+        }
+        return true;
+    }
+
+    Route nextRoute(Route route, Position next, Map<Path, Path> paths, char[][] map) {
+        var steps = paths.get(new Path(route.position, next)).steps;
+        var keys = new HashSet<>(route.keys);
+        keys.add(next.getValueFrom(map));
+        return new Route(next, route.steps + steps, keys);
+    }
+
+    static class Route {
+        int steps;
+        Position position;
+        Set<Character> keys;
+
+        public Route(Position position, int step, Set<Character> keys) {
+            this.position = position;
+            this.steps = step;
+            this.keys = keys;
+        }
+    }
+
+    Map<Path, Path> allPathsBetweenEveryKey(char[][] map, Position startPosition, Set<Position> keyLocations) {
+        var paths = new HashMap<Path, Path>();
+        for (Position to: keyLocations) {
+            var path = findShortestPath(startPosition, to, map);
+            paths.put(path, path);
+        }
+        for (Position from: keyLocations) {
+            for (Position to: keyLocations) {
+                if (Objects.equals(from, to)) continue;
+                var path = findShortestPath(from, to, map);
+                paths.put(path, path);
+            }
+        }
+        return paths;
+    }
+
+    Path findShortestPath(Position from, Position to, char[][] map) {
+        var stepToPosition = new HashMap<Position, Integer>();
+        var comeFromPosition = new HashMap<Position, Position>();
+        var positions = new PriorityQueue<Position>((Comparator.comparingInt(pos -> cost(stepToPosition, pos, to))));
+        stepToPosition.put(from, 0);
+        positions.offer(from);
+
+        while (positions.size() > 0) {
+            Position pos = positions.poll();
+            int step = stepToPosition.get(pos);
+            if (Objects.equals(pos, to)) {
+                var shortestPath = new Path(from, to, step);
+                shortestPath.doors = passthoughDoors(pos, comeFromPosition, map);
+                return shortestPath;
+            } else {
+                pos.allDirections().stream()
+                        .filter(next -> isValidPosition(next, map) && !stepToPosition.containsKey(next))
+                        .forEach(next -> {
+                            stepToPosition.put(next, step + 1);
+                            comeFromPosition.put(next, pos);
+                            positions.offer(next);
+                        });
+            }
+        }
+        throw new RuntimeException("cannot find any path");
+    }
+
+    Set<Character> passthoughDoors(Position pos, HashMap<Position, Position> comeFromPosition, char[][] map) {
+        var requiredKeys = new HashSet<Character>();
+        while (comeFromPosition.containsKey(pos)) {
+            pos = comeFromPosition.get(pos);
+            char value = pos.getValueFrom(map);
+            if (Character.isUpperCase(value)) requiredKeys.add(value);
+        }
+        return requiredKeys;
+    }
+
+    int cost(HashMap<Position, Integer> stepToPosition, Position from, Position to) {
+        return stepToPosition.get(from) + distance(from, to);
+    }
+
+    int distance(Position a, Position b) { return Math.abs(a.x - b.x) + Math.abs(a.y - b.y); }
+
+    boolean isValidPosition(Position pos, char[][] map) {
+        if (pos.x < 0 || pos.y < 0) {
+            return false;
+        } else if (pos.x >= map[0].length || pos.y >= map.length) {
+            return false;
+        } else if (map[pos.y][pos.x] == WALL) {
+            return false;
+        }
+        return true;
+    }
+
+    Set<Position> getKeyLocations(char[][] map) {
+        var locations = new HashSet<Position>();
         for (int y = 0; y < map.length; y++) {
             for (int x = 0; x < map[0].length; x++) {
                 if (Character.isLowerCase(map[y][x]))
-                    total++;
+                    locations.add(new Position(x,y));
             }
         }
-        return total;
-    }
-
-    int minimumStepToCollectAllKeys(char[][] map) {
-        var startPosition = find('@', map);
-        var totalKeys = totalKeys(map);
-        AtomicInteger minStep = new AtomicInteger(Integer.MAX_VALUE);
-        var minStepGetKeySet = new HashMap<String, Integer>();
-        map[startPosition.y][startPosition.x] = '.';
-        var startState = new State(startPosition, Collections.emptySet(), 0, Set.of(startPosition));
-
-        return minimumStepToCollectAllKeys(startState, map, totalKeys, minStepGetKeySet);
-    }
-
-    int minimumStepToCollectAllKeys(State state, char[][] map, int totalKeys, HashMap<String, Integer> minStepGetKeySet) {
-        if (state.keys.size() == totalKeys) {
-            //if (state.steps < minStep.get()) minStep.set(state.steps);
-            return state.steps;
-        }
-        //if (state.steps >= minStep.get()) return Integer.MAX_VALUE;
-
-        return state.position.allDirections().stream()
-                .map(nextPosition -> moveIfValid(state, nextPosition, map, minStepGetKeySet))
-                .flatMap(Optional::stream)
-                .mapToInt(s -> minimumStepToCollectAllKeys(s, map, totalKeys, minStepGetKeySet))
-                .min().orElse(Integer.MAX_VALUE);
-    }
-
-    Optional<State> moveIfValid(State state, Position next, char[][] map, HashMap<String, Integer> minStepGetKeySet) {
-        if (next.x < 0 || next.y < 0) return Optional.empty();
-        if (next.x >= map[0].length || next.y >= map.length) return Optional.empty();
-        if (state.visited.contains(next)) return Optional.empty();
-        char mapValue = map[next.y][next.x];
-        if (mapValue == '#') return Optional.empty();
-        if (Character.isUpperCase(mapValue) && !state.keys.contains(Character.toLowerCase(mapValue))) return Optional.empty();
-
-        var keys = state.keys;
-        var steps = state.steps + 1;
-        Set<Position> visited;
-        if (isGetNewKey(state, mapValue)) {
-            String keySetString = addKeyToString(state.keys, mapValue);
-            if (steps <= minStepGetKeySet.getOrDefault(keySetString, Integer.MAX_VALUE)) {
-                minStepGetKeySet.put(keySetString, steps);
-            } else {
-                return Optional.empty();
-            }
-
-            keys = new HashSet<>();
-            keys.addAll(state.keys);
-            keys.add(mapValue);
-            visited = Set.of(next);
-        } else {
-            visited = new HashSet<>();
-            visited.addAll(state.visited);
-            visited.add(next);
-        }
-
-        return Optional.of(new State(next, keys, steps, visited));
-    }
-
-    private String addKeyToString(Set<Character> keys, char mapValue) {
-        var chars = new char[keys.size() + 1];
-        var i = 0;
-        for (char c : keys) {
-            chars[i] = c;
-            i++;
-        }
-        chars[i] = mapValue;
-        Arrays.sort(chars);
-        return new String(chars);
-    }
-
-    private boolean isGetNewKey(State state, char mapValue) {
-        return Character.isLowerCase(mapValue) && !state.keys.contains(mapValue);
+        return locations;
     }
 
     class State {
@@ -147,13 +191,43 @@ public class Day18Part1 {
         }
     }
 
-    class Position {
+    static class Path {
+        Position from;
+        Position to;
+        int steps;
+        Set<Character> doors = new HashSet<>();
+
+        public Path(Position from, Position to) {
+            this.from = from;
+            this.to = to;
+        }
+
+        public Path(Position from, Position to, int steps) {
+            this(from, to);
+            this.steps = steps;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (!(o instanceof Path)) return false;
+            Path path = (Path) o;
+            return Objects.equals(from, path.from) && Objects.equals(to, path.to);
+        }
+
+        @Override
+        public int hashCode() { return Objects.hash(from, to); }
+    }
+
+    static class Position {
         int x = 0, y = 0;
 
         public Position(int x, int y) {
             this.x = x;
             this.y = y;
         }
+
+        char getValueFrom(char[][] map) { return map[y][x]; }
 
         List<Position> allDirections() {
             return List.of(
@@ -171,19 +245,26 @@ public class Day18Part1 {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
             Position position = (Position) o;
-            return new EqualsBuilder()
-                    .append(x, position.x)
-                    .append(y, position.y)
-                    .isEquals();
+            return x == position.x && y == position.y;
         }
 
         @Override
         public int hashCode() {
-            return new HashCodeBuilder(17, 37)
-                    .append(x)
-                    .append(y)
-                    .toHashCode();
+            return Objects.hash(x, y);
         }
+    }
+
+    @Test
+    public void test2() {
+        String s = "########################\n" +
+                "#f.D.E.e.C.b.A.@.a.B.c.#\n" +
+                "######################.#\n" +
+                "#d.....................#\n" +
+                "########################";
+        var map = parseMap(List.of(s.split("\\n")));
+        var startPos = find('@', map);
+        var keys = getKeyLocations(map);
+        var paths = allPathsBetweenEveryKey(map, startPos, keys);
     }
 
     @Test
@@ -193,30 +274,30 @@ public class Day18Part1 {
                 "######################.#\n" +
                 "#d.....................#\n" +
                 "########################";
-        Assert.assertEquals(86, minimumStepToCollectAllKeys(toMap(List.of(s.split("\\n")))));
+        Assert.assertEquals(86, minimumStepToCollectAllKeys(List.of(s.split("\\n"))));
 
         String s1 = "#########\n" +
                 "#b.A.@.a#\n" +
                 "#########";
-        Assert.assertEquals(8, minimumStepToCollectAllKeys(toMap(List.of(s1.split("\\n")))));
+        Assert.assertEquals(8, minimumStepToCollectAllKeys(List.of(s1.split("\\n"))));
 
-        String s2 = "########################\n" +
-                "#...............b.C.D.f#\n" +
-                "#.######################\n" +
-                "#.....@.a.B.c.d.A.e.F.g#\n" +
-                "########################";
-        Assert.assertEquals(132, minimumStepToCollectAllKeys(toMap(List.of(s2.split("\\n")))));
-
-        String s3 = "#################\n" +
-                "#i.G..c...e..H.p#\n" +
-                "########.########\n" +
-                "#j.A..b...f..D.o#\n" +
-                "########@########\n" +
-                "#k.E..a...g..B.n#\n" +
-                "########.########\n" +
-                "#l.F..d...h..C.m#\n" +
-                "#################";
-        Assert.assertEquals(136, minimumStepToCollectAllKeys(toMap(List.of(s3.split("\\n")))));
+//        String s2 = "########################\n" +
+//                "#...............b.C.D.f#\n" +
+//                "#.######################\n" +
+//                "#.....@.a.B.c.d.A.e.F.g#\n" +
+//                "########################";
+//        Assert.assertEquals(132, minimumStepToCollectAllKeys(List.of(s2.split("\\n"))));
+//
+//        String s3 = "#################\n" +
+//                "#i.G..c...e..H.p#\n" +
+//                "########.########\n" +
+//                "#j.A..b...f..D.o#\n" +
+//                "########@########\n" +
+//                "#k.E..a...g..B.n#\n" +
+//                "########.########\n" +
+//                "#l.F..d...h..C.m#\n" +
+//                "#################";
+//        Assert.assertEquals(136, minimumStepToCollectAllKeys(List.of(s3.split("\\n"))));
     }
 
 }
