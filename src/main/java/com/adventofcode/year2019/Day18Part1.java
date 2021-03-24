@@ -1,22 +1,16 @@
 package com.adventofcode.year2019;
 
 
-import java.io.IOException;
-import java.text.MessageFormat;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.PriorityQueue;
-import java.util.Set;
-
-import org.junit.Assert;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.text.MessageFormat;
+import java.util.*;
+
+import static org.junit.Assert.assertEquals;
 
 public class Day18Part1 {
     Logger log = LoggerFactory.getLogger(Day18Part1.class);
@@ -49,26 +43,42 @@ public class Day18Part1 {
         var map = parseMap(inputs);
         var startPosition = find('@', map);
         var keyLocations = getKeyLocations(map);
+        var paths = allPathsBetweenEveryKey(map, startPosition, keyLocations);
+        var routes = new PriorityQueue<>(this::compareRoute);
+        var minStepGetKeySet = new HashMap<String, Integer>();
+        routes.offer(new Route(startPosition, 0, Collections.emptySet()));
 
-        var allPaths = allPathsBetweenEveryKey(map, startPosition, keyLocations);
-        return minimumStepToCollectAllKeys(startPosition, new Route(startPosition, 0, Collections.emptySet()), keyLocations, allPaths, map);
-    }
-
-    int minimumStepToCollectAllKeys(Position start, Route route, Set<Position> keyLocations, Map<Path, Path> paths, char[][] map) {
-        if (route.keys.size() == keyLocations.size()) {
-            return route.steps;
+        while (routes.size() > 0) {
+            Route route = routes.poll();
+            if (route.keys.size() == keyLocations.size()) {
+                return route.steps;
+            } else {
+                keyLocations.stream()
+                        .filter(to -> validMove(route, to, paths, map))
+                        .map(to -> nextRoute(route, to, paths, map))
+                        .filter(r -> r.steps <= minStepGetKeySet.getOrDefault(StringUtils.join(r.keys), Integer.MAX_VALUE))
+                        .forEach(r -> {
+                            minStepGetKeySet.put(StringUtils.join(r.keys), r.steps);
+                            routes.offer(r);
+                        });
+            }
         }
-
-        return keyLocations.stream()
-                .filter(to -> canVisit(route, to, paths))
-                .map(to -> nextRoute(route, to, paths, map))
-                .mapToInt(nextPath -> minimumStepToCollectAllKeys(start, nextPath, keyLocations, paths, map))
-                .min().getAsInt();
+        throw new RuntimeException("Cannot find route");
     }
 
-    boolean canVisit(Route route, Position next, Map<Path, Path> paths) {
+    private int compareRoute(Route r1, Route r2) {
+        if (r1.steps == r2.steps)
+            return r2.keys.size() - r1.keys.size();
+        else
+            return r1.steps - r2.steps;
+    }
+
+    boolean validMove(Route route, Position next, Map<Path, Path> paths, char[][] map) {
         var path = paths.get(new Path(route.position, next));
         if (path == null) return false;
+
+        var value = next.getValueFrom(map);
+        if (route.keys.contains(value)) return false;
 
         for (char door: path.doors) {
             if (!route.keys.contains(Character.toLowerCase(door)))
@@ -274,30 +284,38 @@ public class Day18Part1 {
                 "######################.#\n" +
                 "#d.....................#\n" +
                 "########################";
-        Assert.assertEquals(86, minimumStepToCollectAllKeys(List.of(s.split("\\n"))));
+        assertEquals(86, minimumStepToCollectAllKeys(List.of(s.split("\\n"))));
 
         String s1 = "#########\n" +
                 "#b.A.@.a#\n" +
                 "#########";
-        Assert.assertEquals(8, minimumStepToCollectAllKeys(List.of(s1.split("\\n"))));
+        assertEquals(8, minimumStepToCollectAllKeys(List.of(s1.split("\\n"))));
 
-//        String s2 = "########################\n" +
-//                "#...............b.C.D.f#\n" +
-//                "#.######################\n" +
-//                "#.....@.a.B.c.d.A.e.F.g#\n" +
-//                "########################";
-//        Assert.assertEquals(132, minimumStepToCollectAllKeys(List.of(s2.split("\\n"))));
-//
-//        String s3 = "#################\n" +
-//                "#i.G..c...e..H.p#\n" +
-//                "########.########\n" +
-//                "#j.A..b...f..D.o#\n" +
-//                "########@########\n" +
-//                "#k.E..a...g..B.n#\n" +
-//                "########.########\n" +
-//                "#l.F..d...h..C.m#\n" +
-//                "#################";
-//        Assert.assertEquals(136, minimumStepToCollectAllKeys(List.of(s3.split("\\n"))));
+        String s2 = "########################\n" +
+                "#...............b.C.D.f#\n" +
+                "#.######################\n" +
+                "#.....@.a.B.c.d.A.e.F.g#\n" +
+                "########################";
+        assertEquals(132, minimumStepToCollectAllKeys(List.of(s2.split("\\n"))));
+
+        String s4 = "########################\n" +
+                "#@..............ac.GI.b#\n" +
+                "###d#e#f################\n" +
+                "###A#B#C################\n" +
+                "###g#h#i################\n" +
+                "########################";
+        assertEquals(81, minimumStepToCollectAllKeys(List.of(s4.split("\\n"))));
+
+        String s3 = "#################\n" +
+                "#i.G..c...e..H.p#\n" +
+                "########.########\n" +
+                "#j.A..b...f..D.o#\n" +
+                "########@########\n" +
+                "#k.E..a...g..B.n#\n" +
+                "########.########\n" +
+                "#l.F..d...h..C.m#\n" +
+                "#################";
+        assertEquals(136, minimumStepToCollectAllKeys(List.of(s3.split("\\n"))));
     }
 
 }
