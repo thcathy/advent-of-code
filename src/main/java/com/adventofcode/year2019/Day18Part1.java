@@ -1,15 +1,26 @@
 package com.adventofcode.year2019;
 
 
+import java.io.IOException;
+import java.text.MessageFormat;
+import java.util.ArrayDeque;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.text.MessageFormat;
-import java.util.*;
+import com.google.common.base.Charsets;
+import com.google.common.io.Resources;
 
+import static java.lang.Character.isLowerCase;
+import static java.lang.Character.isUpperCase;
+import static java.lang.Character.toLowerCase;
 import static org.junit.Assert.assertEquals;
 
 public class Day18Part1 {
@@ -19,6 +30,13 @@ public class Day18Part1 {
 
     public static void main(String... args) throws IOException {
         Day18Part1 solution = new Day18Part1();
+        solution.run();
+    }
+
+    void run() throws IOException {
+        var lines = Resources.readLines(ClassLoader.getSystemResource(inputFile), Charsets.UTF_8);
+        var result = minimumStepToCollectAllKeys(lines);
+        log.warn("How many steps is the shortest path that collects all of the keys? {}", result);
     }
 
     char[][] parseMap(List<String> strings) {
@@ -42,128 +60,41 @@ public class Day18Part1 {
     int minimumStepToCollectAllKeys(List<String> inputs) {
         var map = parseMap(inputs);
         var startPosition = find('@', map);
-        var keyLocations = getKeyLocations(map);
-        var paths = allPathsBetweenEveryKey(map, startPosition, keyLocations);
-        var routes = new PriorityQueue<>(this::compareRoute);
-        var minStepGetKeySet = new HashMap<String, Integer>();
-        routes.offer(new Route(startPosition, 0, Collections.emptySet()));
+        var totalKeys = findTotalKeys(map);
+        var states = new ArrayDeque<State>();
+        var visitedState = new HashSet<String>();
+        int processedState = 0;
 
-        while (routes.size() > 0) {
-            Route route = routes.poll();
-            if (route.keys.size() == keyLocations.size()) {
-                return route.steps;
-            } else {
-                keyLocations.stream()
-                        .filter(to -> validMove(route, to, paths, map))
-                        .map(to -> nextRoute(route, to, paths, map))
-                        .filter(r -> r.steps <= minStepGetKeySet.getOrDefault(StringUtils.join(r.keys), Integer.MAX_VALUE))
-                        .forEach(r -> {
-                            minStepGetKeySet.put(StringUtils.join(r.keys), r.steps);
-                            routes.offer(r);
-                        });
+        states.offer(new State(startPosition, Collections.emptySet(), 0));
+
+        while (states.size() > 0) {
+            var state = states.pop();
+            processedState++;
+            if (processedState % 500000 == 0) log.debug("processed state: {}", processedState);
+
+            if (state.keys.size() == totalKeys) {
+                return state.steps;
+            }
+
+            for (Position nextPosition : state.position.allDirections()) {
+                if (!isValidPosition(nextPosition, map))
+                    continue;
+                var mapValue = nextPosition.getValueFrom(map);
+                if (isUpperCase(mapValue) && !state.keys.contains(toLowerCase(mapValue)))
+                    continue;
+                var keys = state.keys;
+                if (isLowerCase(mapValue)) {
+                    keys = new HashSet<>(keys);
+                    keys.add(mapValue);
+                }
+                var nextState = new State(nextPosition, keys, state.steps+1);
+                if (!visitedState.add(nextState.identifier))
+                    continue;
+                states.add(nextState);
             }
         }
         throw new RuntimeException("Cannot find route");
     }
-
-    private int compareRoute(Route r1, Route r2) {
-        if (r1.steps == r2.steps)
-            return r2.keys.size() - r1.keys.size();
-        else
-            return r1.steps - r2.steps;
-    }
-
-    boolean validMove(Route route, Position next, Map<Path, Path> paths, char[][] map) {
-        var path = paths.get(new Path(route.position, next));
-        if (path == null) return false;
-
-        var value = next.getValueFrom(map);
-        if (route.keys.contains(value)) return false;
-
-        for (char door: path.doors) {
-            if (!route.keys.contains(Character.toLowerCase(door)))
-                return false;
-        }
-        return true;
-    }
-
-    Route nextRoute(Route route, Position next, Map<Path, Path> paths, char[][] map) {
-        var steps = paths.get(new Path(route.position, next)).steps;
-        var keys = new HashSet<>(route.keys);
-        keys.add(next.getValueFrom(map));
-        return new Route(next, route.steps + steps, keys);
-    }
-
-    static class Route {
-        int steps;
-        Position position;
-        Set<Character> keys;
-
-        public Route(Position position, int step, Set<Character> keys) {
-            this.position = position;
-            this.steps = step;
-            this.keys = keys;
-        }
-    }
-
-    Map<Path, Path> allPathsBetweenEveryKey(char[][] map, Position startPosition, Set<Position> keyLocations) {
-        var paths = new HashMap<Path, Path>();
-        for (Position to: keyLocations) {
-            var path = findShortestPath(startPosition, to, map);
-            paths.put(path, path);
-        }
-        for (Position from: keyLocations) {
-            for (Position to: keyLocations) {
-                if (Objects.equals(from, to)) continue;
-                var path = findShortestPath(from, to, map);
-                paths.put(path, path);
-            }
-        }
-        return paths;
-    }
-
-    Path findShortestPath(Position from, Position to, char[][] map) {
-        var stepToPosition = new HashMap<Position, Integer>();
-        var comeFromPosition = new HashMap<Position, Position>();
-        var positions = new PriorityQueue<Position>((Comparator.comparingInt(pos -> cost(stepToPosition, pos, to))));
-        stepToPosition.put(from, 0);
-        positions.offer(from);
-
-        while (positions.size() > 0) {
-            Position pos = positions.poll();
-            int step = stepToPosition.get(pos);
-            if (Objects.equals(pos, to)) {
-                var shortestPath = new Path(from, to, step);
-                shortestPath.doors = passthoughDoors(pos, comeFromPosition, map);
-                return shortestPath;
-            } else {
-                pos.allDirections().stream()
-                        .filter(next -> isValidPosition(next, map) && !stepToPosition.containsKey(next))
-                        .forEach(next -> {
-                            stepToPosition.put(next, step + 1);
-                            comeFromPosition.put(next, pos);
-                            positions.offer(next);
-                        });
-            }
-        }
-        throw new RuntimeException("cannot find any path");
-    }
-
-    Set<Character> passthoughDoors(Position pos, HashMap<Position, Position> comeFromPosition, char[][] map) {
-        var requiredKeys = new HashSet<Character>();
-        while (comeFromPosition.containsKey(pos)) {
-            pos = comeFromPosition.get(pos);
-            char value = pos.getValueFrom(map);
-            if (Character.isUpperCase(value)) requiredKeys.add(value);
-        }
-        return requiredKeys;
-    }
-
-    int cost(HashMap<Position, Integer> stepToPosition, Position from, Position to) {
-        return stepToPosition.get(from) + distance(from, to);
-    }
-
-    int distance(Position a, Position b) { return Math.abs(a.x - b.x) + Math.abs(a.y - b.y); }
 
     boolean isValidPosition(Position pos, char[][] map) {
         if (pos.x < 0 || pos.y < 0) {
@@ -176,57 +107,29 @@ public class Day18Part1 {
         return true;
     }
 
-    Set<Position> getKeyLocations(char[][] map) {
-        var locations = new HashSet<Position>();
+    int findTotalKeys(char[][] map) {
+        int keys = 0;
         for (int y = 0; y < map.length; y++) {
             for (int x = 0; x < map[0].length; x++) {
                 if (Character.isLowerCase(map[y][x]))
-                    locations.add(new Position(x,y));
+                    keys++;
             }
         }
-        return locations;
+        return keys;
     }
 
     class State {
         Position position;
         Set<Character> keys;
         int steps;
-        Set<Position> visited;
+        String identifier;
 
-        public State(Position position, Set<Character> keys, int steps, Set<Position> visited) {
+        public State(Position position, Set<Character> keys, int steps) {
             this.position = position;
             this.keys = keys;
             this.steps = steps;
-            this.visited = visited;
+            this.identifier = position.toString() + StringUtils.join(keys);
         }
-    }
-
-    static class Path {
-        Position from;
-        Position to;
-        int steps;
-        Set<Character> doors = new HashSet<>();
-
-        public Path(Position from, Position to) {
-            this.from = from;
-            this.to = to;
-        }
-
-        public Path(Position from, Position to, int steps) {
-            this(from, to);
-            this.steps = steps;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (!(o instanceof Path)) return false;
-            Path path = (Path) o;
-            return Objects.equals(from, path.from) && Objects.equals(to, path.to);
-        }
-
-        @Override
-        public int hashCode() { return Objects.hash(from, to); }
     }
 
     static class Position {
@@ -262,19 +165,6 @@ public class Day18Part1 {
         public int hashCode() {
             return Objects.hash(x, y);
         }
-    }
-
-    @Test
-    public void test2() {
-        String s = "########################\n" +
-                "#f.D.E.e.C.b.A.@.a.B.c.#\n" +
-                "######################.#\n" +
-                "#d.....................#\n" +
-                "########################";
-        var map = parseMap(List.of(s.split("\\n")));
-        var startPos = find('@', map);
-        var keys = getKeyLocations(map);
-        var paths = allPathsBetweenEveryKey(map, startPos, keys);
     }
 
     @Test
