@@ -13,8 +13,7 @@ import java.util.stream.IntStream;
 
 public class Day24Part2 {
     Logger log = LoggerFactory.getLogger(Day24Part2.class);
-    static final String inputFile = "2019/day24_a.txt";
-    static final char SPACE = '.';
+    static final String inputFile = "2019/day24_1.txt";
     static final char BUG = '#';
     static final int MAP_SIZE = 5;
 
@@ -28,7 +27,7 @@ public class Day24Part2 {
         var bugs = parseMap(lines);
         var iteration = 0;
 
-        while (iteration < 10) {
+        while (iteration < 200) {
             var nextBugs = new HashSet<Position>();
             for (Position bug : bugs) {
                 for (Position tile : adjacentTiles(bug)) {
@@ -47,41 +46,41 @@ public class Day24Part2 {
             bugs = nextBugs;
             iteration++;
         }
-        log.warn("What is the biodiversity rating for the first layout that appears twice? {}", bugs.size());
+        log.warn("how many bugs are present after 200 minutes? {}", bugs.size());
     }
 
     List<Position> adjacentTiles(Position position) {
         List<Position> tiles = new ArrayList<>();
-        tiles.addAll(tiles(position.level, position.y+1, position.x, position));
-        tiles.addAll(tiles(position.level, position.y-1, position.x, position));
-        tiles.addAll(tiles(position.level, position.y, position.x+1, position));
-        tiles.addAll(tiles(position.level, position.y, position.x-1, position));
+        tiles.addAll(tiles(position.level, position.x+1, position.y, position));
+        tiles.addAll(tiles(position.level, position.x-1, position.y, position));
+        tiles.addAll(tiles(position.level, position.x, position.y+1, position));
+        tiles.addAll(tiles(position.level, position.x, position.y-1, position));
         return tiles;
     }
 
-    List<Position> tiles(int level, int y, int x, Position fromPosition) {
+    List<Position> tiles(int level, int x, int y, Position fromPosition) {
         if (x < 0) {
-            return List.of(new Position(level+1, 2, 1));
-        } else if (y < 0) {
             return List.of(new Position(level+1, 1, 2));
+        } else if (y < 0) {
+            return List.of(new Position(level+1, 2, 1));
         } else if (x >= MAP_SIZE) {
-            return List.of(new Position(level+1, 2, 3));
+            return List.of(new Position(level+1, 3, 2));
         } else if (y >= MAP_SIZE) {
             return List.of(new Position(level+1, 2, 3));
         } else if (x==2 && y==2) {
             final int nextLevel = level - 1;
             if (fromPosition.y==1) {
-                return IntStream.range(0, 5).mapToObj(i -> new Position(nextLevel, 0, i)).collect(Collectors.toList());
-            } else if (fromPosition.y==3) {
-                return IntStream.range(0, 5).mapToObj(i -> new Position(nextLevel, 4, i)).collect(Collectors.toList());
-            } else if (fromPosition.x==1) {
                 return IntStream.range(0, 5).mapToObj(i -> new Position(nextLevel, i, 0)).collect(Collectors.toList());
-            } else if (fromPosition.x==3) {
+            } else if (fromPosition.y==3) {
                 return IntStream.range(0, 5).mapToObj(i -> new Position(nextLevel, i, 4)).collect(Collectors.toList());
+            } else if (fromPosition.x==1) {
+                return IntStream.range(0, 5).mapToObj(i -> new Position(nextLevel, 0, i)).collect(Collectors.toList());
+            } else if (fromPosition.x==3) {
+                return IntStream.range(0, 5).mapToObj(i -> new Position(nextLevel, 4, i)).collect(Collectors.toList());
             }
             throw new RuntimeException("unexpected input");
         } else
-            return List.of(new Position(level, y, x));
+            return List.of(new Position(level, x, y));
     }
 
     Set<Position> parseMap(List<String> lines) {
@@ -90,7 +89,7 @@ public class Day24Part2 {
             String line = lines.get(y);
             for (int x = 0; x < line.length(); x++) {
                 if (line.charAt(x) == BUG)
-                    bugs.add(new Position(0, y, x));
+                    bugs.add(new Position(0, x, y));
             }
         }
         return bugs;
