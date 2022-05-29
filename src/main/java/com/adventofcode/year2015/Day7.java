@@ -49,7 +49,7 @@ public class Day7 {
 	}
 	
 	static char gateValue(LogicGate g, Map<String, LogicGate> gates) {
-		log.debug("get gate value of {}", g);
+		log.debug("get gate actionValue of {}", g);
 		char v1, v2;
 		if (StringUtils.isNumeric(g.in1)) {
 			v1 = (char) Integer.parseInt(g.in1);

@@ -45,7 +45,7 @@ public class Day19Part2 {
             result = canBeamFitPositionFound(beams, requiredSize, y);
             y++;
         }
-        log.warn("What value do you get if you take that point's X coordinate, multiply it by 10000, then add the point's Y coordinate? {}", result.get().x * 10000 + result.get().y);
+        log.warn("What actionValue do you get if you take that point's X coordinate, multiply it by 10000, then add the point's Y coordinate? {}", result.get().x * 10000 + result.get().y);
     }
 
     private void queryBeamOnNextLine(long[] program, HashSet<Position> beams, int y) {

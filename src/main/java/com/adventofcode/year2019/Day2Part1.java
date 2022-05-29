@@ -22,7 +22,7 @@ public class Day2Part1 {
         input[1] = 12;
         input[2] = 2;
         program(input);
-        log.warn("What value is left at position 0 = {}", input[0]);
+        log.warn("What actionValue is left at position 0 = {}", input[0]);
     }
 
     void operation(int[] input, int opcodePosition) {

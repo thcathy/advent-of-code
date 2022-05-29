@@ -30,9 +30,9 @@ public class Day10 {
 
         var lines = Resources.readLines(ClassLoader.getSystemResource(inputFile), Charsets.UTF_8);
         lines.stream().filter(l -> l.startsWith("bot")).forEach(i -> executeInstruction(factory, i));
-        lines.stream().filter(l -> l.startsWith("value")).forEach(i -> executeInstruction(factory, i));
+        lines.stream().filter(l -> l.startsWith("actionValue")).forEach(i -> executeInstruction(factory, i));
 
-        log.warn("First star - the bot that is responsible for comparing value-61 microchips with value-17 microchips? {}", factory.responsibleBotNumber);
+        log.warn("First star - the bot that is responsible for comparing actionValue-61 microchips with actionValue-17 microchips? {}", factory.responsibleBotNumber);
 
         log.warn("Second star - multiply together the values of one chip in each of outputs 0, 1, and 2? {}",
                 factory.outputBins.get(0) * factory.outputBins.get(1) * factory.outputBins.get(2));
@@ -134,7 +134,7 @@ public class Day10 {
 
     void executeInstruction(Factory factory, String input) {
         var params = input.split(" ");
-        if (params[0].equals("value"))
+        if (params[0].equals("actionValue"))
             factory.giveChipToBot.accept(Integer.valueOf(params[1]), Integer.valueOf(params[5]));
         else
             factory.setInstruction(params);
@@ -145,7 +145,7 @@ public class Day10 {
         var factory = new Factory();
         factory.isResponsible = (b) -> b.isContain(5, 2);
 
-        executeInstruction(factory, "value 5 goes to bot 2");
+        executeInstruction(factory, "actionValue 5 goes to bot 2");
         assertEquals(5, factory.bots.get(2).chip1.intValue());
 
         executeInstruction(factory, "bot 2 gives low to bot 1 and high to bot 0");
@@ -154,13 +154,13 @@ public class Day10 {
         assertEquals(0, factory.instructions.get(2).highValueCommand.target);
         assertEquals(factory.giveChipToBot, factory.instructions.get(2).highValueCommand.action);
 
-        executeInstruction(factory, "value 3 goes to bot 1");
+        executeInstruction(factory, "actionValue 3 goes to bot 1");
         executeInstruction(factory, "bot 1 gives low to output 1 and high to bot 0");
         executeInstruction(factory, "bot 0 gives low to output 2 and high to output 0");
         assertEquals(0, factory.instructions.get(0).highValueCommand.target);
         assertEquals(factory.putOutputBin, factory.instructions.get(0).highValueCommand.action);
 
-        executeInstruction(factory, "value 2 goes to bot 2");
+        executeInstruction(factory, "actionValue 2 goes to bot 2");
         assertEquals(5, factory.outputBins.get(0).intValue());
         assertEquals(2, factory.outputBins.get(1).intValue());
         assertEquals(3, factory.outputBins.get(2).intValue());

@@ -22,7 +22,7 @@ public class Day3Part2 {
 
     void run() {
         int result = valueLargerThan(QUESTION_INPUT);
-        log.warn("What is the first value written that is larger than your puzzle input? {}", result);
+        log.warn("What is the first actionValue written that is larger than your puzzle input? {}", result);
     }
 
     int valueLargerThan(int minValue) {

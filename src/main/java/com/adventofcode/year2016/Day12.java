@@ -39,7 +39,7 @@ public class Day12 {
         var code = startingCode();
         runInstructions(code, lines);
 
-        log.warn("First star - what value is left in register a? {}", code.get('a'));
+        log.warn("First star - what actionValue is left in register a? {}", code.get('a'));
     }
 
     void secondStar() throws IOException {
@@ -48,7 +48,7 @@ public class Day12 {
         code.put('c', 1);
         runInstructions(code, lines);
 
-        log.warn("Second star - what value is left in register a? {}", code.get('a'));
+        log.warn("Second star - what actionValue is left in register a? {}", code.get('a'));
     }
 
     void runInstructions(Map<Character, Integer> code, List<String> instructions) {

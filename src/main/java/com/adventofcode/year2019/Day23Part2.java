@@ -161,7 +161,7 @@ public class Day23Part2 {
 
         private void processNAT() {
             if (NATPacket.Y == lastNATPacketYValue) {
-                log.warn("What is the first Y value delivered by the NAT to the computer at address 0 twice in a row? {}", lastNATPacketYValue);
+                log.warn("What is the first Y actionValue delivered by the NAT to the computer at address 0 twice in a row? {}", lastNATPacketYValue);
                 System.exit(0);
             }
             lastNATPacketYValue = NATPacket.Y;

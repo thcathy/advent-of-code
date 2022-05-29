@@ -148,7 +148,7 @@ public class Day23Part1 {
                     if (packet != null) {
                         log.debug("send packet to {}: {},{}", packet.address, packet.X, packet.Y);
                         if (packet.address == ENDING_PACKET_ADDRESS) {
-                            log.warn("What is the Y value of the first packet sent to address 255? {}", packet.Y);
+                            log.warn("What is the Y actionValue of the first packet sent to address 255? {}", packet.Y);
                             System.exit(0);
                         }
 

@@ -43,7 +43,7 @@ public class Day23 {
         code.put('a', 7);
         runInstructions(code, lines.stream().map(s -> s.split(" ")).collect(Collectors.toList()));
 
-        log.warn("First star - what value is left in register a? {}", code.get('a'));
+        log.warn("First star - what actionValue is left in register a? {}", code.get('a'));
     }
 
     void secondStar() throws IOException {
@@ -52,7 +52,7 @@ public class Day23 {
         code.put('a', 12);
         runInstructions(code, lines.stream().map(s -> s.split(" ")).collect(Collectors.toList()));
 
-        log.warn("Second star - what value is left in register a? {}", code.get('a'));
+        log.warn("Second star - what actionValue is left in register a? {}", code.get('a'));
     }
 
     class InstructionInput {
