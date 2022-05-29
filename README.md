@@ -2,17 +2,17 @@
 
 Advent of Code is a series of small programming puzzles for a variety of skill levels. They are self-contained and are just as appropriate for an expert who wants to stay sharp as they are for a beginner who is just learning to code. Each puzzle calls upon different skills and has two parts that build on a theme.
 
-I am sharing my sources which are written in Java 10 to anyone who is interested.
+I am sharing my sources which are written in Java 10-17 to anyone who is interested.
 
 Some coding considerations:
 
   * prefer readability (clean code) more than performance 
-  * adapting the functional interface introduced in Java 8
-  * including unit test cases in each solution
+  * adapting new language features in the latest Java version
+  * including unit test cases in most of the solutions
 
 ## How to get the answer
 
-Running the java class as Java Application. The result will be printed to the console logs.
+Put your input inside java source file or correspondent text file. Then, running the java class as Java Application. The result will be printed to the console logs.
 
 ## Author
 
