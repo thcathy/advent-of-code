@@ -1,26 +1,27 @@
-apply plugin: 'java'
-apply plugin: 'eclipse'
+plugins {
+	id 'java-library'
+}
 
-sourceCompatibility = JavaVersion.VERSION_HIGHER
-targetCompatibility = JavaVersion.VERSION_HIGHER
+java {
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(17)
+	}
+}
+
 version = '1.0'
 
 repositories {
-	jcenter()
-    maven {
-        url 'https://repo.maven.apache.org/maven2'
-        name 'Maven Central'
-    }
+	mavenCentral()
 }
 
 dependencies {
-	compile 'commons-collections:commons-collections:3.2'
-	compile 'com.google.guava:guava:19.+'
-	compile 'ch.qos.logback:logback-classic:1.2.6'
-	compile 'org.slf4j:slf4j-api:1.7.36'
-	compile 'com.fasterxml.jackson.core:jackson-databind:2.13.3'
-	compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.8.1'
-	compile group: 'junit', name: 'junit', version: '4.12'
+	implementation 'commons-collections:commons-collections:3.2'
+	implementation 'com.google.guava:guava:19.+'
+	implementation 'ch.qos.logback:logback-classic:1.2.6'
+	implementation 'org.slf4j:slf4j-api:1.7.36'
+	implementation 'com.fasterxml.jackson.core:jackson-databind:2.13.3'
+	implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.8.1'
+	implementation group: 'junit', name: 'junit', version: '4.12'
 }
 
 test {
