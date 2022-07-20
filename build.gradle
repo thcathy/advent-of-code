@@ -28,3 +28,10 @@ test {
 	systemProperties 'property': 'value'
 }
 
+sourceSets {
+    test {
+        java.srcDir file('src/main/java')
+        resources.srcDir file('src/main/resources')
+    }
+}
+
