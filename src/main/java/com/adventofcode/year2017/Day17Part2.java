@@ -1,11 +1,7 @@
 package com.adventofcode.year2017;
 
 
-import static org.junit.Assert.assertEquals;
-
 import java.io.IOException;
-
-import org.junit.Test;
 
 public class Day17Part2 {
     final static int ENDING_SIZE = 50_000_000;
@@ -22,51 +18,15 @@ public class Day17Part2 {
     }
 
     int findShortCircuitNumber(int stepping, int finalSize) {
-        SpinLock spinLock = new SpinLock();                
-        for (int i = 1; i < finalSize; i++) {
-            for (int j = 0; j < stepping; j++) {
-                spinLock.next();
-            }
-            spinLock.add(i);            
+        int valueAtPosition1 = -1;
+        int currentPosition = 0;
+        for (int i = 1; i <= finalSize; i++) {
+            currentPosition = ((currentPosition + stepping) % i) + 1;
+            if (currentPosition == 1) {
+                valueAtPosition1 = i;
+            }                
         }
-        return spinLock.originNode.next.value;
+        return valueAtPosition1;
     }
-
-    class SpinLock {
-        Node head;
-        Node current;
-        Node originNode;
-
-        SpinLock() {
-            Node node = new Node(0, null);
-            node.next = node;
-            head = node;
-            originNode = node;
-            current = node;
-        }
-        
-        void add(int value) {
-            Node newNode = new Node(value, current.next);
-            current.next = newNode;
-            current = newNode;
-        }
-
-        void next() {
-            current = current.next; }
-    }
-
-    class Node {
-        int value;
-        Node next;
-
-        Node(int value, Node next) {
-            this.value = value;
-            this.next = next;
-        }
-    }
-    
-    @Test
-    public void unitTest() {        
-        assertEquals(638, findShortCircuitNumber(3, 2018));
-    }
+   
 }
