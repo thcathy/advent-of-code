@@ -47,6 +47,7 @@ public class Day18Part2 {
         pool.submit(() -> program0.run());
         pool.submit(() -> program1.run());
         pool.awaitTermination(RECEIVE_TIMEOUT_SECOND * 2, TimeUnit.SECONDS);
+        pool.shutdownNow();
         return program1.sendTimes;
     }
 
