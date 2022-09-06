@@ -12,42 +12,43 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
 
-public class Day3Part1 {
+public class Day3Part2 {
     final static int FABRIC_SIZE = 1000;
 
-    Logger log = LoggerFactory.getLogger(Day3Part1.class);
+    Logger log = LoggerFactory.getLogger(Day3Part2.class);
     final static String inputFile = "2018/day3.txt";
     
 
     public static void main(String... args) throws IOException {
-        Day3Part1 solution = new Day3Part1();
+        Day3Part2 solution = new Day3Part2();
         solution.run();
     }
 
     void run() throws IOException {
         var lines = Resources.readLines(ClassLoader.getSystemResource(inputFile), Charsets.UTF_8);
-        var result = countOverlap(lines);
-        log.warn("How many square inches of fabric are within two or more claims? {}", result);
+        var result = notOverlapClaimId(lines);
+        log.warn("What is the ID of the only claim that doesn't overlap? {}", result);
     }
 
-    int countOverlap(List<String> inputs) {
+    String notOverlapClaimId(List<String> inputs) {
         List<Claim> claims = inputs.stream().map(this::parseClaim).toList();
         int[][] fabric = new int[FABRIC_SIZE][FABRIC_SIZE];
         for (Claim claim : claims) {
             markClaim(fabric, claim);
         }
-        return overlapSquares(fabric);
+        return claims.stream().filter(c -> isNotOverlap(fabric, c)).findFirst().get().id;
     }
 
-    int overlapSquares(int[][] fabric) {
-        int count = 0;
-        for (int x=0; x<fabric.length; x++) {
-            for (int y=0; y<fabric.length; y++) {
-                if (fabric[x][y] > 1)
-                    count++;
+    boolean isNotOverlap(int[][] fabric, Claim claim) {
+        int rightEdge = claim.leftEdge + claim.wide;
+        int bottomEdge = claim.topEdge + claim.tall;
+        for (int x=claim.leftEdge; x<rightEdge; x++) {
+            for (int y=claim.topEdge; y<bottomEdge; y++) {
+                if (fabric[x][y] != 1)
+                    return false;
             }
         }
-        return count;
+        return true;
     }
 
     void markClaim(int[][] fabric, Claim claim) {
@@ -77,6 +78,6 @@ public class Day3Part1 {
         assertEquals(new Claim("3", 1, 2, 3, 4), parseClaim("#3 @ 1,2: 3x4"));
 
         var lines = Resources.readLines(ClassLoader.getSystemResource("2018/day3_test.txt"), Charsets.UTF_8);
-        assertEquals(4, countOverlap(lines));
+        assertEquals("3", notOverlapClaimId(lines));
     }
 }
