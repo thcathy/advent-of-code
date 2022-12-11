@@ -14,35 +14,36 @@ import java.util.function.Function;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-public class Day11Part1 {
+public class Day11Part2 {
     final static String inputFile = "2022/day11.txt";
-    final static int ROUNDS = 20;
+    final static int ROUNDS = 10000;
 
     public static void main(String... args) throws IOException {
-        Day11Part1 solution = new Day11Part1();
+        Day11Part2 solution = new Day11Part2();
         solution.run();
     }
 
     void run() throws IOException {
         var lines = Resources.readLines(ClassLoader.getSystemResource(inputFile), Charsets.UTF_8);
         var result = monkeyBusinessLevel(parseMonkeys(lines));
-        System.out.println("What is the level of monkey business after 20 rounds of stuff-slinging simian shenanigans? " + result);
+        System.out.println("what is the level of monkey business after 10000 rounds? " + result);
     }
 
-    int monkeyBusinessLevel(List<Monkey> monkeys) {
+    long monkeyBusinessLevel(List<Monkey> monkeys) {
         for (int i = 0; i < ROUNDS; i++) {
             nextRound(monkeys);
         }
-        monkeys.sort(Comparator.comparingInt(m -> m.inspectedItems));
+        monkeys.sort(Comparator.comparingLong(m -> m.inspectedItems));
         return monkeys.get(monkeys.size() - 1).inspectedItems * monkeys.get(monkeys.size() - 2).inspectedItems;
     }
 
     void nextRound(List<Monkey> monkeys) {
+        int maxValue = monkeys.stream().mapToInt(m -> m.testValue).reduce(1, (a, b) -> a * b);
         for (Monkey monkey : monkeys) {
             monkey.inspectedItems += monkey.items.size();
-            for (int item : monkey.items) {
-                item = monkey.operation.apply(item) / 3;
-                var throwTo = monkey.test.apply(item) ? monkey.testSuccessMonkey : monkey.testFailMonkey; 
+            for (long item : monkey.items) {
+                item = monkey.operation.apply(item) % maxValue;
+                var throwTo = monkey.test.apply(item) ? monkey.testSuccessMonkey : monkey.testFailMonkey;
                 monkeys.get(throwTo).items.add(item);
             }
             monkey.items.clear();
@@ -51,12 +52,13 @@ public class Day11Part1 {
 
     class Monkey {
         int id;
-        Queue<Integer> items = new LinkedList<>();
-        Function<Integer, Integer> operation;
-        Function<Integer, Boolean> test;
+        Queue<Long> items = new LinkedList<>();
+        Function<Long, Long> operation;
+        Function<Long, Boolean> test;
+        int testValue;
         int testSuccessMonkey;
         int testFailMonkey;
-        int inspectedItems = 0;
+        long inspectedItems = 0;
     }
 
     List<Monkey> parseMonkeys(List<String> inputs) {
@@ -67,12 +69,12 @@ public class Day11Part1 {
         return list;
     }
 
-    Function<Integer, Integer> parseOperation(String[] inputs) {
+    Function<Long, Long> parseOperation(String[] inputs) {
         if (inputs[7].equals("old")) {
             return switch (inputs[6]) {
                 case "*" -> (v) -> v * v;
                 case "+" -> (v) -> v + v;
-                case "-" -> (v) -> 0;
+                case "-" -> (v) -> 0L;
                 default -> throw new RuntimeException();
             };
         } else {
@@ -90,10 +92,11 @@ public class Day11Part1 {
         var monkey = new Monkey();
         monkey.id = Integer.parseInt(inputs.get(0).split(" ")[1].replace(":", ""));
         for (var string : inputs.get(1).replace("  Starting items: ", "").split(", ")) {
-            monkey.items.add(Integer.parseInt(string));
+            monkey.items.add(Long.parseLong(string));
         }
         monkey.operation = parseOperation(inputs.get(2).split(" "));
-        monkey.test = (v) -> v % Integer.parseInt(inputs.get(3).split(" ")[5]) == 0;
+        monkey.testValue = Integer.parseInt(inputs.get(3).split(" ")[5]);
+        monkey.test = (v) -> v % monkey.testValue == 0;
         monkey.testSuccessMonkey = Integer.parseInt(inputs.get(4).split(" ")[9]);
         monkey.testFailMonkey = Integer.parseInt(inputs.get(5).split(" ")[9]);
         return monkey;
@@ -106,8 +109,8 @@ public class Day11Part1 {
         assertEquals(4, monkeys.size());
         var monkey0 = monkeys.get(0);
         assertEquals(0, monkey0.id);
-        assertEquals(190, monkey0.operation.apply(10).intValue());
-        assertTrue( monkey0.test.apply(46));
+        assertEquals(190, monkey0.operation.apply(10L).intValue());
+        assertTrue( monkey0.test.apply(46L));
         assertEquals(2, monkey0.testSuccessMonkey);
         assertEquals(3, monkey0.testFailMonkey);
 
@@ -117,6 +120,6 @@ public class Day11Part1 {
         assertEquals(0, monkeys.get(2).items.size());
         assertEquals(0, monkeys.get(3).items.size());
 
-        assertEquals(10605, monkeyBusinessLevel(parseMonkeys(lines)));
+        assertEquals(2713310158L, monkeyBusinessLevel(parseMonkeys(lines)));
     }
 }
