@@ -11,11 +11,12 @@ import java.util.List;
 
 import static junit.framework.TestCase.assertEquals;
 
-public class Day20Part1 {
+public class Day20Part2 {
     final static String inputFile = "2022/day20.txt";
+    final static long DECRYPTION_KEY = 811589153;
 
     public static void main(String... args) throws IOException {
-        Day20Part1 solution = new Day20Part1();
+        Day20Part2 solution = new Day20Part2();
         solution.run();
     }
 
@@ -25,7 +26,7 @@ public class Day20Part1 {
         System.out.println("What is the sum of the three numbers that form the grove coordinates? " + result);
     }
 
-    int findGroveCoordinates(List<String> input) {
+    long findGroveCoordinates(List<String> input) {
         var nodeZero = mixing(input);
         return valueAfter(nodeZero, 1000, input.size())
                 + valueAfter(nodeZero, 2000, input.size())
@@ -34,19 +35,21 @@ public class Day20Part1 {
 
     Node mixing(List<String> input) {
         var nodeZero = parseInput(input);
-        for (int i = 0; i < input.size(); i++) {
-            move(Integer.parseInt(input.get(i)), i, nodeZero, input.size());
+        for (int j = 0; j < 10; j++) {
+            for (int i = 0; i < input.size(); i++) {
+                move(Long.parseLong(input.get(i)) * DECRYPTION_KEY, i, nodeZero, input.size());
+            }
         }
         return nodeZero;
     }
 
     Node parseInput(List<String> input) {
-        var node = new Node(Integer.parseInt(input.get(0)), 0);
+        var node = new Node(Long.parseLong(input.get(0)) * DECRYPTION_KEY, 0);
         var first = node;
         Node nodeZero = null;
         Node next = null;
         for (int i = 1; i < input.size(); i++) {
-            next = new Node(Integer.parseInt(input.get(i)), i);
+            next = new Node(Long.parseLong(input.get(i)) * DECRYPTION_KEY, i);
             node.next = next;
             next.previous = node;
             node = next;
@@ -58,7 +61,7 @@ public class Day20Part1 {
         return nodeZero;
     }
 
-    Node find(int value, int originalPosition, Node node) {
+    Node find(long value, int originalPosition, Node node) {
         while (true) {
             if (node.value == value && node.originalPosition == originalPosition)
                 return node;
@@ -66,7 +69,7 @@ public class Day20Part1 {
         }
     }
 
-    Node move(int value, int originalPosition, Node node, int size) {
+    Node move(long value, int originalPosition, Node node, int size) {
         if (value == 0) return node;
 
         var valueNode = find(value, originalPosition, node);
@@ -75,7 +78,7 @@ public class Day20Part1 {
         previous.next = next;
         next.previous = previous;
 
-        int distance = value % (size - 1);
+        long distance = value % (size - 1);
         if (distance < 0) {
             for (long i = 0; i > distance; i--) {
                 next = previous;
@@ -96,16 +99,16 @@ public class Day20Part1 {
     }
 
     class Node {
-        int value; int originalPosition;
+        long value; int originalPosition;
         Node previous, next;
 
-        public Node(int value, int originalPosition) {
+        public Node(long value, int originalPosition) {
             this.value = value;
             this.originalPosition = originalPosition;
         }
     }
 
-    int valueAfter(Node node, int position, int size) {
+    long valueAfter(Node node, int position, int size) {
         position = position % size;
         while (position > 0) {
             node = node.next;
@@ -119,14 +122,14 @@ public class Day20Part1 {
         var lines = Files.readAllLines(Paths.get(ClassLoader.getSystemResource("2022/day20_test.txt").toURI()));
         var node = parseInput(lines);
         assertEquals(0, node.value);
-        assertEquals(4, node.next.value);
+        assertEquals(3246356612L, node.next.value);
 
         node = mixing(lines);
-        assertEquals(4, valueAfter(node, 1000, lines.size()));
-        assertEquals(-3, valueAfter(node, 2000, lines.size()));
-        assertEquals(2, valueAfter(node, 3000, lines.size()));
+        assertEquals(811589153, valueAfter(node, 1000, lines.size()));
+        assertEquals(2434767459L, valueAfter(node, 2000, lines.size()));
+        assertEquals(-1623178306, valueAfter(node, 3000, lines.size()));
 
-        assertEquals(3, findGroveCoordinates(lines));
+        assertEquals(1623178306, findGroveCoordinates(lines));
     }
 
 }
