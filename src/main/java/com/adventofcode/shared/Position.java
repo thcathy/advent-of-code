@@ -3,6 +3,10 @@ package com.adventofcode.shared;
 import java.util.List;
 
 public record Position(int x, int y) {
+    public static int distance(Position a, Position b) {
+        return Math.abs(a.x - b.x) + Math.abs(a.y - b.y);
+    }
+
     public Position move(Direction direction) {
         return switch (direction) {
             case NORTH -> new Position(x, y - 1);
