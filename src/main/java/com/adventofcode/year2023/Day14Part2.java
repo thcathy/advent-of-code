@@ -1,8 +1,10 @@
 package com.adventofcode.year2023;
 
 import static com.adventofcode.year2023.Day14Part2.Direction.NORTH;
+import static com.adventofcode.year2023.Day14Part2.Direction.SOUTH;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -43,25 +45,57 @@ public class Day14Part2 {
                 }
             }
         }
-
-        System.out.println(">>> debug");
-        for (int y = 0 ; y < puzzle.height; y++) {
-            for (int x = 0; x < puzzle.width; x++) {
-                var c = slidedRocks.contains(new Position(x, y)) ? 'X' : '.';
-                System.out.print(c);
-            }
-            System.out.println();
-        }
-        System.out.println(">>>>>>>>>");
-
         return slidedRocks;
+    }
+
+
+
+    Puzzle slideRocks(Puzzle puzzle, Direction direction) {
+        var slidedRocks = new HashSet<Position>();
+        for (var position : checkPositionsInSequence.get(direction)) {
+            if (puzzle.roundRocks.contains(position)) {
+                slidedRocks.add(slide(puzzle, slidedRocks, position, direction))
+            }
+        }
+        return new Puzzle();
+    }
+
+    Map<Direction, List<Position>> checkPositionsInSequence = new HashMap<>();
+    void populateCheckPositionsInSequence(int width, int height) {
+        var positions = new ArrayList<Position>();
+        // NORTH
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                positions.add(new Position(x, y));                
+            }
+        }
+        checkPositionsInSequence.put(NORTH, positions);
+        checkPositionsInSequence.put(WEST, positions);
+        
+        // SOUTH
+        positions = new ArrayList<Position>();
+        for (int y = height - 1; y >= 0; y--) {
+            for (int x = 0; x < width; x++) {
+                positions.add(new Position(x, y));                
+            }
+        }
+        checkPositionsInSequence.put(SOUTH, positions);
+
+        // EAST
+        positions = new ArrayList<Position>();
+        for (int y = 0; y < height; y++) {
+            for (int x = width - 1; x >= 0; x--) {
+                positions.add(new Position(x, y));                
+            }
+        }
+        checkPositionsInSequence.put(EAST, positions);
     }
 
     Position slide(Puzzle puzzle, Set<Position> slidedRocks, Position rock, Direction direction) {
         var thisPosition = rock;
         var nextPosition = rock.move(direction);
         while (puzzle.isValid(nextPosition)
-            && !puzzle.roundRocks.contains(nextPosition) 
+            && !puzzle.cubeRocks.contains(nextPosition) 
             && !slidedRocks.contains(nextPosition)) {
             thisPosition = nextPosition;
             nextPosition = thisPosition.move(direction);
@@ -99,11 +133,11 @@ public class Day14Part2 {
     //region Input Parsing
 
     Puzzle parseInput(List<String> inputs) {
-        var heigth = inputs.size();
+        var height = inputs.size();
         var width = inputs.get(0).length();
         var cubeRocks = new HashSet<Position>();
         var roundRocks = new HashSet<Position>();
-        for (int y = 0; y < heigth; y++) {
+        for (int y = 0; y < height; y++) {
             var line = inputs.get(y);
             for (int x = 0; x < width; x++) {
                 switch (line.charAt(x)) {
@@ -112,7 +146,7 @@ public class Day14Part2 {
                 }
             }
         }
-        return new Puzzle(cubeRocks, roundRocks, width, heigth);
+        return new Puzzle(cubeRocks, roundRocks, width, height);
     }
 
     //endregion
