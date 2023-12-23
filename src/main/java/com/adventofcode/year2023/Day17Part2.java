@@ -10,21 +10,20 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.*;
 
-import static com.adventofcode.year2023.Day17Part1.Direction.Down;
-import static com.adventofcode.year2023.Day17Part1.Direction.Right;
+import static com.adventofcode.year2023.Day17Part2.Direction.*;
 
-public class Day17Part1 {
-    Logger log = LoggerFactory.getLogger(Day17Part1.class);
+public class Day17Part2 {
+    Logger log = LoggerFactory.getLogger(Day17Part2.class);
     final static String inputFile = "2023/day17.txt";
 
     public static void main(String... args) throws IOException {
-        Day17Part1 solution = new Day17Part1();
+        Day17Part2 solution = new Day17Part2();
         solution.run();
     }
 
     void run() throws IOException {
         var lines = Resources.readLines(ClassLoader.getSystemResource(inputFile), Charsets.UTF_8);
-         var puzzle = new Day17Part1().parseInput(lines);
+         var puzzle = new Day17Part2().parseInput(lines);
          var result = minHeatLoss(puzzle);
          log.warn("What is the least heat loss it can incur? {}", result);
     }
@@ -46,7 +45,7 @@ public class Day17Part1 {
             Arrays.stream(Direction.values())
                     .filter(d -> d != state.direction.opposite())
                     .map(d -> state.createNextState(puzzle.heatMap, d))
-                    .filter(s -> s.sameDirectionStep < 3)
+                    .filter(s -> s.sameDirectionStep < 10)
                     .filter(s -> puzzle.isValid(s.position))
                     .filter(s -> s.cost() <= minHeatLossMap.getOrDefault(s.key(), Integer.MAX_VALUE))
                     .filter(visited::add)
@@ -59,10 +58,18 @@ public class Day17Part1 {
 
     record MovementState(int heatLoss, Position position, Direction direction, int sameDirectionStep) {
         MovementState createNextState(Map<Position, Integer> map, Direction nextDirection) {
-            var nextPosition = position.move(nextDirection);
-            var moreLoss = map.getOrDefault(nextPosition, 0);
+            var isTurned = direction != nextDirection;
+            var stepToMove = isTurned ? 4 : 1;
+
+            var nextPosition = position;
+            var moreLoss = 0;
+            for (int i = 0; i < stepToMove; i++) {
+                nextPosition = nextPosition.move(nextDirection);
+                moreLoss += map.getOrDefault(nextPosition, 0);
+            }
+
             return new MovementState(heatLoss + moreLoss, nextPosition, nextDirection,
-                    direction == nextDirection ? sameDirectionStep + 1 : 0);
+                     isTurned ? 3 : sameDirectionStep + 1);
         }
 
         String key() { return position.x + "," + position.y + direction + sameDirectionStep;}
@@ -123,8 +130,13 @@ public class Day17Part1 {
     @Test
     public void unitTest() throws IOException {        
         var lines = Resources.readLines(ClassLoader.getSystemResource("2023/day17_test.txt"), Charsets.UTF_8);
-        var puzzle = new Day17Part1().parseInput(lines);
+        var puzzle = new Day17Part2().parseInput(lines);
         var result = minHeatLoss(puzzle);
-        Assert.assertEquals(102, result);
+        Assert.assertEquals(94, result);
+
+        var lines2 = Resources.readLines(ClassLoader.getSystemResource("2023/day17_test2.txt"), Charsets.UTF_8);
+        var puzzle2 = new Day17Part2().parseInput(lines2);
+        var result2 = minHeatLoss(puzzle2);
+        Assert.assertEquals(71, result2);
     }
 }
