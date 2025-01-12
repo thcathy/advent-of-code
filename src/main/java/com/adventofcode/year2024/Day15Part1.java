@@ -6,7 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
 
 public class Day15Part1 {
     private static final Logger log = LoggerFactory.getLogger(Day15Part1.class);
@@ -18,66 +18,42 @@ public class Day15Part1 {
 
     private void run() throws IOException {
         var input = parseInput();
-        var map = input.getKey();
-        var moves = input.getValue();
-
-        simulateRobot(map, moves);
-        int sumGPS = calculateGPS(map);
-
-        log.warn("Sum of GPS coordinates after moves: {}", sumGPS);
+        simulateRobot(input.map(), input.moves());
+        log.warn("Sum of GPS coordinates after moves: {}", calculateGPS(input.map()));
     }
 
-    private Pair<char[][], String> parseInput() throws IOException {
+    private record Input(char[][] map, String moves) {}
+
+    private Input parseInput() throws IOException {
         var lines = Resources.readLines(ClassLoader.getSystemResource(INPUT_FILE), Charsets.UTF_8);
-        List<String> mapLines = new ArrayList<>();
-        StringBuilder movesBuilder = new StringBuilder();
+        var mapLines = new ArrayList<String>();
+        var movesBuilder = new StringBuilder();
 
-        for (String line : lines) {
-            if (line.startsWith("#")) {
-                mapLines.add(line);
-            } else {
-                movesBuilder.append(line.trim());
-            }
+        for (var line : lines) {
+            if (line.startsWith("#")) mapLines.add(line);
+            else movesBuilder.append(line.trim());
         }
 
-        char[][] map = new char[mapLines.size()][mapLines.get(0).length()];
-        for (int i = 0; i < mapLines.size(); i++) {
-            map[i] = mapLines.get(i).toCharArray();
-        }
+        var map = new char[mapLines.size()][mapLines.getFirst().length()];
+        for (var i = 0; i < mapLines.size(); i++) map[i] = mapLines.get(i).toCharArray();
 
-        return new Pair<>(map, movesBuilder.toString());
+        return new Input(map, movesBuilder.toString());
     }
 
     private void simulateRobot(char[][] map, String moves) {
-        int[] robotPos = findRobot(map); // Find initial robot position
+        var robotPos = findRobot(map);
 
-        for (char move : moves.toCharArray()) {
-            int newX = robotPos[0];
-            int newY = robotPos[1];
-
-            // Calculate new position based on move direction
-            switch (move) {
-                case '^': newX--; break;
-                case 'v': newX++; break;
-                case '<': newY--; break;
-                case '>': newY++; break;
-            }
+        for (var move : moves.toCharArray()) {
+            var newX = robotPos[0] + (move == '^' ? -1 : move == 'v' ? 1 : 0);
+            var newY = robotPos[1] + (move == '<' ? -1 : move == '>' ? 1 : 0);
 
             if (isInsideMap(map, newX, newY)) {
-                if (map[newX][newY] == 'O') { // Box in the way
-                    int boxNewX = newX + (newX - robotPos[0]);
-                    int boxNewY = newY + (newY - robotPos[1]);
-
-                    // Check if the box can be moved
-                    if (isInsideMap(map, boxNewX, boxNewY) && map[boxNewX][boxNewY] == '.') {
-                        // Move box
-                        map[boxNewX][boxNewY] = 'O';
-                        map[newX][newY] = '@';
-                        map[robotPos[0]][robotPos[1]] = '.';
-                        robotPos[0] = newX;
-                        robotPos[1] = newY;
-                    }
-                } else if (map[newX][newY] == '.') { // Empty space
+                if (map[newX][newY] == 'O' && pushBox(map, newX, newY, move)) {
+                    map[newX][newY] = '@';
+                    map[robotPos[0]][robotPos[1]] = '.';
+                    robotPos[0] = newX;
+                    robotPos[1] = newY;
+                } else if (map[newX][newY] == '.') {
                     map[newX][newY] = '@';
                     map[robotPos[0]][robotPos[1]] = '.';
                     robotPos[0] = newX;
@@ -87,52 +63,38 @@ public class Day15Part1 {
         }
     }
 
+    private boolean pushBox(char[][] map, int x, int y, char direction) {
+        var boxNewX = x + (direction == '^' ? -1 : direction == 'v' ? 1 : 0);
+        var boxNewY = y + (direction == '<' ? -1 : direction == '>' ? 1 : 0);
+
+        if (isInsideMap(map, boxNewX, boxNewY)) {
+            if (map[boxNewX][boxNewY] == '.') {
+                map[boxNewX][boxNewY] = 'O';
+                return true;
+            } else if (map[boxNewX][boxNewY] == 'O' && pushBox(map, boxNewX, boxNewY, direction)) {
+                map[boxNewX][boxNewY] = 'O';
+                return true;
+            }
+        }
+        return false;
+    }
+
     private boolean isInsideMap(char[][] map, int x, int y) {
         return x >= 0 && y >= 0 && x < map.length && y < map[0].length && map[x][y] != '#';
     }
 
-    private boolean canMove(char[][] map, int fromX, int fromY, int toX, int toY) {
-        return toX >= 0 && toY >= 0 && toX < map.length && toY < map[0].length && map[toX][toY] != '#';
-    }
-
     private int[] findRobot(char[][] map) {
-        for (int i = 0; i < map.length; i++) {
-            for (int j = 0; j < map[i].length; j++) {
-                if (map[i][j] == '@') {
-                    return new int[]{i, j};
-                }
-            }
-        }
+        for (var i = 0; i < map.length; i++)
+            for (var j = 0; j < map[i].length; j++)
+                if (map[i][j] == '@') return new int[]{i, j};
         throw new IllegalStateException("Robot not found on the map");
     }
 
     private int calculateGPS(char[][] map) {
-        int sum = 0;
-        for (int i = 0; i < map.length; i++) {
-            for (int j = 0; j < map[i].length; j++) {
-                if (map[i][j] == 'O') {
-                    sum += 100 * i + j;
-                }
-            }
-        }
+        var sum = 0;
+        for (var i = 0; i < map.length; i++)
+            for (var j = 0; j < map[i].length; j++)
+                if (map[i][j] == 'O') sum += 100 * i + j;
         return sum;
-    }
-
-    private static final class Pair<K, V> {
-        private final K key;
-        private final V value;
-
-        Pair(K key, V value) {
-            this.key = key;
-            this.value = value;
-        }
-
-        K getKey() {
-            return key;
-        }
-
-        V getValue() {
-            return value;
-        }
     }
 }
