@@ -21,7 +21,7 @@ public class Day14Part2 {
     private void run() throws IOException {
         var robots = parseInput();
         int seconds = findEasterEggTime(robots);
-        log.warn("The robots form the Easter egg after {} seconds.", seconds);
+        log.warn("Easter egg appears after {} seconds", seconds);
     }
 
     private List<Robot> parseInput() throws IOException {
@@ -39,63 +39,91 @@ public class Day14Part2 {
     }
 
     private int findEasterEggTime(List<Robot> robots) {
-        int time = 0;
-        int smallestArea = Integer.MAX_VALUE;
-        int bestTime = 0;
-
-        while (time < 10000) { // Arbitrary high limit
-            moveRobots(robots);
-            time++;
-
-            var bounds = calculateBounds(robots);
-            int width = bounds[1] - bounds[0] + 1;
-            int height = bounds[3] - bounds[2] + 1;
-            int area = width * height;
-
-            // Detect the smallest area
-            if (area < smallestArea) {
-                smallestArea = area;
-                bestTime = time;
-            } else if (area > smallestArea) {
-                // Area starts increasing, assume pattern has passed
-                printRobots(robots);
-                break;
+        int seconds = 0;
+        while (true) {
+            simulateRobots(robots);
+            seconds++;
+            if (isEasterEgg(robots)) {
+                return seconds;
             }
         }
-
-        return bestTime;
     }
 
-    private void moveRobots(List<Robot> robots) {
+    private void simulateRobots(List<Robot> robots) {
         robots.forEach(robot -> robot.move(WIDTH, HEIGHT));
     }
 
-    private int[] calculateBounds(List<Robot> robots) {
-        int minX = Integer.MAX_VALUE, maxX = Integer.MIN_VALUE;
-        int minY = Integer.MAX_VALUE, maxY = Integer.MIN_VALUE;
+    private boolean isEasterEgg(List<Robot> robots) {
+        // Define the expected pattern for the Easter egg (Christmas tree)
+        // This is a simplified example; you may need to adjust the pattern based on the actual input
+        var grid = new int[HEIGHT][WIDTH];
+        robots.forEach(robot -> grid[robot.y()][robot.x()]++);
 
-        for (var robot : robots) {
-            minX = Math.min(minX, robot.x());
-            maxX = Math.max(maxX, robot.x());
-            minY = Math.min(minY, robot.y());
-            maxY = Math.max(maxY, robot.y());
-        }
-
-        return new int[]{minX, maxX, minY, maxY};
+        // Example pattern check (adjust based on actual pattern)
+        // Check if the robots form a specific shape (e.g., a tree)
+        // This is a placeholder; you need to define the actual pattern
+        return checkChristmasTreePattern(grid);
     }
 
-    private void printRobots(List<Robot> robots) {
-        char[][] grid = new char[HEIGHT][WIDTH];
-        for (int i = 0; i < HEIGHT; i++) {
-            Arrays.fill(grid[i], '.');
+    private boolean checkChristmasTreePattern(int[][] grid) {
+        printGrid(grid);
+        int height = grid.length;
+        int width = grid[0].length;
+
+        // Check for a dense region in the middle (trunk of the tree)
+        int midX = width / 2;
+        int midY = height / 2;
+
+        // Define the expected width of the tree at different heights
+        // For example, the tree should be wider at the bottom and narrower at the top
+        int maxTreeWidth = width / 2; // Maximum width of the tree
+        int minTreeWidth = 5; // Minimum width of the tree (narrower at the top)
+
+        // Check density and symmetry
+        for (int y = 0; y < height; y++) {
+            int expectedWidth = maxTreeWidth - (y * (maxTreeWidth - minTreeWidth) / height);
+            int leftBound = midX - expectedWidth / 2;
+            int rightBound = midX + expectedWidth / 2;
+
+            // Check if the density of robots in this row matches the expected tree shape
+            int robotCount = 0;
+            for (int x = leftBound; x <= rightBound; x++) {
+                if (grid[y][x] > 0) {
+                    robotCount++;
+                }
+            }
+
+            // If the robot count is too low, it doesn't match the tree pattern
+            if (robotCount < expectedWidth / 2) {
+                return false;
+            }
+
+            // Check symmetry
+            for (int x = 0; x < midX; x++) {
+                if (grid[y][x] != grid[y][width - 1 - x]) {
+                    return false;
+                }
+            }
         }
 
-        for (var robot : robots) {
-            grid[robot.y()][robot.x()] = '#';
-        }
+        // If all checks pass, assume it's a Christmas tree
+        return true;
+    }
 
-        for (var row : grid) {
-            System.out.println(new String(row));
+    private void printGrid(int[][] grid) {
+        System.out.println("-------------------------------------------------------");
+        int height = grid.length;
+        int width = grid[0].length;
+
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                if (grid[y][x] > 0) {
+                    System.out.print("#"); // Robot present
+                } else {
+                    System.out.print("."); // No robot
+                }
+            }
+            System.out.println(); // New line after each row
         }
     }
 

@@ -14,4 +14,14 @@ public class Debug {
         }
         System.out.println(">>>>>>>>>");
     }
+
+    public static void printMap(char[][] map) {
+        for (var i = 0; i < map.length; i++) {
+            for (var j = 0; j < map[i].length; j++) {
+                System.out.print(map[i][j]);
+            }
+            System.out.println();
+        }
+        System.out.println();
+    }
 }

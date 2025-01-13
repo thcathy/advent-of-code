@@ -19,18 +19,15 @@ public class Day13Part2 {
 
     private void run() throws IOException {
         List<Machine> machines = parseInput();
-        int totalPrizes = 0;
         long totalTokens = 0;
 
         for (Machine machine : machines) {
             var result = calculateMinimumTokens(machine);
-            if (result[0] != Long.MAX_VALUE) {
-                totalPrizes++;
-                totalTokens += result[0];
+            if (result != Long.MAX_VALUE) {
+                totalTokens += result;
             }
         }
 
-        log.warn("Total prizes won: {}", totalPrizes);
         log.warn("Minimum tokens spent: {}", totalTokens);
     }
 
@@ -55,63 +52,31 @@ public class Day13Part2 {
             long prizeX = Long.parseLong(prizeParts[0].split("=")[1]) + PRIZE_OFFSET;
             long prizeY = Long.parseLong(prizeParts[1].split("=")[1]) + PRIZE_OFFSET;
 
+            // Create a new Machine object and add to the list
             machines.add(new Machine(aX, aY, bX, bY, prizeX, prizeY));
         }
 
         return machines;
     }
 
-    private long[] calculateMinimumTokens(Machine machine) {
+    private long calculateMinimumTokens(Machine machine) {
         long minTokens = Long.MAX_VALUE;
 
-        long gcdX = gcd(machine.aX, machine.bX);
-        long gcdY = gcd(machine.aY, machine.bY);
+        // Solve the system of equations:
+        // aPresses * aX + bPresses * bX = prizeX
+        // aPresses * aY + bPresses * bY = prizeY
+        long determinant = (long) machine.aX * machine.bY - (long) machine.aY * machine.bX;
+        long aPresses = (machine.prizeX * machine.bY - machine.prizeY * machine.bX) / determinant;
+        long bPresses = (machine.aX * machine.prizeY - machine.aY * machine.prizeX) / determinant;
 
-        if (machine.prizeX % gcdX == 0 && machine.prizeY % gcdY == 0) {
-            long[] xSolution = findSolution(machine.aX, machine.bX, machine.prizeX);
-            long[] ySolution = findSolution(machine.aY, machine.bY, machine.prizeY);
-
-            // Calculate costs and find the minimum
-            for (long k = 0; k <= 100000000; k++) { // Adjust the range based on gcd scaling
-                long aPresses = xSolution[0] + k * (machine.bX / gcdX);
-                long bPresses = ySolution[0] + k * (machine.bY / gcdY);
-
-                if (aPresses >= 0 && bPresses >= 0) {
-                    long cost = aPresses * 3 + bPresses;
-                    minTokens = Math.min(minTokens, cost);
-                }
-            }
+        // Check if the solution is valid
+        if (aPresses >= 0 && bPresses >= 0 &&
+                aPresses * machine.aX + bPresses * machine.bX == machine.prizeX &&
+                aPresses * machine.aY + bPresses * machine.bY == machine.prizeY) {
+            minTokens = aPresses * 3 + bPresses;
         }
 
-        return new long[]{minTokens};
-    }
-
-    private long[] findSolution(int a, int b, long c) {
-        long gcd = gcd(a, b);
-        if (c % gcd != 0) return new long[]{0, 0}; // No solution
-
-        // Extended Euclidean Algorithm to find one solution
-        long x0 = 0, y0 = 0;
-        long[] extGcd = extendedGCD(a, b);
-        x0 = extGcd[0] * (c / gcd);
-        y0 = extGcd[1] * (c / gcd);
-
-        return new long[]{x0, y0};
-    }
-
-    private long[] extendedGCD(int a, int b) {
-        if (b == 0) return new long[]{1, 0}; // ax + by = gcd(a, b)
-        long[] next = extendedGCD(b, a % b);
-        return new long[]{next[1], next[0] - (a / b) * next[1]};
-    }
-
-    private long gcd(int a, int b) {
-        while (b != 0) {
-            long temp = b;
-            b = a % b;
-            a = (int) temp;
-        }
-        return a;
+        return minTokens;
     }
 
     private static class Machine {
